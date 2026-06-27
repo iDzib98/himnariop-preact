@@ -1,0 +1,176 @@
+import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
+import type { BibleVerse } from '../../services/bibleApi';
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from '../ui/Icons';
+import styles from './BibleTvMode.module.css';
+
+interface BibleTvModeProps {
+  verses: BibleVerse[];
+  bookName: string;
+  chapter: number;
+  onClose: () => void;
+  theme: string;
+}
+
+const SLIDE_WIDTH = 800;
+const SLIDE_HEIGHT = 600;
+
+export function BibleTvMode({ verses, bookName, chapter, onClose, theme }: BibleTvModeProps) {
+  const [slide, setSlide] = useState(0);
+  const [scale, setScale] = useState(1);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
+
+  const totalSlides = 1 + verses.length;
+
+  const goNext = useCallback(() => {
+    setSlide(s => (s + 1) % totalSlides);
+  }, [totalSlides]);
+
+  const goPrev = useCallback(() => {
+    setSlide(s => (s - 1 + totalSlides) % totalSlides);
+  }, [totalSlides]);
+
+  const exitFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.();
+    }
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    const container = document.documentElement;
+    const requestFs = () => {
+      if (container.requestFullscreen) {
+        container.requestFullscreen().catch(() => {});
+      }
+    };
+    requestFs();
+
+    const handleFsChange = () => {
+      if (!document.fullscreenElement) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFsChange);
+    };
+  }, [onClose]);
+
+  useEffect(() => {
+    const calculateScale = () => {
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const scaleX = viewportWidth / SLIDE_WIDTH;
+      const scaleY = viewportHeight / SLIDE_HEIGHT;
+      setScale(Math.min(scaleX, scaleY));
+    };
+
+    calculateScale();
+    window.addEventListener('resize', calculateScale);
+    return () => window.removeEventListener('resize', calculateScale);
+  }, []);
+
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: TouchEvent) => {
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const minSwipe = 50;
+
+    if (Math.abs(deltaX) > minSwipe) {
+      if (deltaX > 0) {
+        goPrev();
+      } else {
+        goNext();
+      }
+    }
+  }, [goNext, goPrev]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+        case ' ':
+          goNext();
+          break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          goPrev();
+          break;
+        case 'Escape':
+          exitFullscreen();
+          break;
+        case 'Home':
+          exitFullscreen();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [goNext, goPrev, exitFullscreen]);
+
+  const themeClass = theme === 'light' ? styles.light : theme === 'sepia' ? styles.sepia : theme === 'oled' ? styles.oled : '';
+
+  return (
+    <div class={`${styles.container} ${themeClass}`}>
+      <header class={`${styles.header} ${styles.visible}`}>
+        <button class={styles.exitBtn} onClick={exitFullscreen} title="Salir (Esc)">
+          <CloseIcon size={24} />
+        </button>
+      </header>
+
+      <main
+        class={styles.main}
+        onClick={goNext}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div
+          class={styles.slideWrapper}
+          ref={wrapperRef}
+          style={{ transform: `scale(${scale})` }}
+        >
+          {slide === 0 ? (
+            <div class={`${styles.slide} ${styles.titleSlide}`}>
+              <h1 class={styles.slideTitle}>{bookName}</h1>
+              <h2 class={styles.slideChapter}>Capítulo {chapter}</h2>
+            </div>
+          ) : (
+            <div class={`${styles.slide} ${styles.verseSlide}`}>
+              <div class={styles.verseContent}>
+                <span class={styles.verseNum}>{verses[slide - 1].verse}</span>
+                <p class={styles.verseText}>{verses[slide - 1].text}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+
+      <footer class={`${styles.footer} ${styles.visible}`}>
+        <button class={styles.arrowBtn} onClick={(e) => { e.stopPropagation(); goPrev(); }} title="Anterior">
+          <ChevronLeftIcon size={24} />
+        </button>
+        <div class={styles.progress}>
+          {Array.from({ length: totalSlides }).map((_, i) => (
+            <div
+              key={i}
+              class={`${styles.dot} ${i === slide ? styles.active : ''}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSlide(i);
+              }}
+            />
+          ))}
+        </div>
+        <button class={styles.arrowBtn} onClick={(e) => { e.stopPropagation(); goNext(); }} title="Siguiente">
+          <ChevronRightIcon size={24} />
+        </button>
+      </footer>
+    </div>
+  );
+}

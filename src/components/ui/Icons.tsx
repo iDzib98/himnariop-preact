@@ -245,6 +245,25 @@ export function CompressIcon({ size = 24, color = 'currentColor', className }: I
   );
 }
 
+export function BibleIcon({ size = 24, color = 'currentColor', className }: IconProps): JSX.Element {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" class={className}>
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      <path d="M12 6v7" />
+      <path d="M9 9h6" />
+    </svg>
+  );
+}
+
+export function BookmarkIcon({ size = 24, color = 'currentColor', className }: IconProps): JSX.Element {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" class={className}>
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
 export function DownloadIcon({ size = 24, color = 'currentColor', className }: IconProps): JSX.Element {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" class={className}>

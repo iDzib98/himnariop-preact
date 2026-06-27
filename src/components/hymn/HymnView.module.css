@@ -95,7 +95,7 @@
 }
 
 .main {
-  padding: 80px var(--space-lg) 140px;
+  padding: 80px var(--space-lg) calc(140px + 64px);
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -226,6 +226,16 @@
 .green { background-color: var(--color-green); }
 .blue { background-color: var(--color-blue); }
 .indigo { background-color: var(--color-indigo); }
+
+@media (min-width: 768px) {
+  .header {
+    top: 0;
+  }
+
+  .main {
+    padding-top: 80px;
+  }
+}
 
 /* Header colors - uses same classes */
 .black { background-color: var(--color-black); }

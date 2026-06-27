@@ -1,4 +1,5 @@
 import type { Settings, ColorOption, FontSize, FontFamily, Theme } from '../types/himno';
+import { DEFAULT_BIBLE_VERSION } from '../data/bibleVersions';
 
 const KEYS = {
   COLOR: 'color',
@@ -6,6 +7,7 @@ const KEYS = {
   FONT_SIZE_VALUE: 'fontSizeValue',
   FONT_FAMILY: 'fontFamily',
   THEME: 'theme',
+  BIBLE_VERSION: 'bibleVersion',
   FAVORITOS: 'favoritos',
   HIMNO_ACTUAL: 'himnoActual',
   CACHE_META: 'cache_meta'
@@ -16,7 +18,8 @@ const DEFAULTS: Settings = {
   fontSize: 'large',
   fontSizeValue: 2,
   fontFamily: 'sans-serif',
-  theme: 'dark'
+  theme: 'dark',
+  bibleVersion: DEFAULT_BIBLE_VERSION,
 };
 
 type SettingsListener = (settings: Settings) => void;
@@ -89,6 +92,14 @@ class StorageService {
     this.notifySettings();
   }
 
+  get bibleVersion(): string {
+    return this.getItem(KEYS.BIBLE_VERSION, DEFAULTS.bibleVersion);
+  }
+  set bibleVersion(value: string) {
+    this.setItem(KEYS.BIBLE_VERSION, value);
+    this.notifySettings();
+  }
+
   get favoritos(): number[] {
     const stored = localStorage.getItem(KEYS.FAVORITOS);
     if (!stored) return [];
@@ -102,6 +113,21 @@ class StorageService {
   set favoritos(value: number[]) {
     this.setItem(KEYS.FAVORITOS, value);
     this.notifyFavorites();
+  }
+
+  getBibleFavorites(): string[] {
+    const stored = localStorage.getItem('biblia_favoritos');
+    if (!stored) return [];
+    try {
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  setBibleFavorites(value: string[]): void {
+    this.setItem('biblia_favoritos', value);
   }
 
   get himnoActual(): number | null {
@@ -122,7 +148,8 @@ class StorageService {
       fontSize: this.fontSize,
       fontSizeValue: this.fontSizeValue,
       fontFamily: this.fontFamily,
-      theme: this.theme
+      theme: this.theme,
+      bibleVersion: this.bibleVersion,
     };
   }
 

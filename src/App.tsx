@@ -4,21 +4,21 @@ import { useHashRoute } from './hooks/useHashRoute';
 import { useSettings } from './hooks/useSettings';
 import { Home } from './components/home/Home';
 import { HymnView } from './components/hymn/HymnView';
-import { SettingsModal } from './components/settings/SettingsModal';
-import { FavoritesModal } from './components/settings/FavoritesModal';
-import { InfoModal } from './components/settings/InfoModal';
-import { CacheManagerModal } from './components/settings/CacheManagerModal';
+import { BibleHome } from './components/bible/BibleHome';
+import { BibleChapter } from './components/bible/BibleChapter';
+import { TabBar } from './components/ui/TabBar';
+import { FavoritesView } from './components/settings/FavoritesView';
+import { SettingsView } from './components/settings/SettingsView';
+import { InfoView } from './components/settings/InfoView';
 import './styles/reset.css';
 import './styles/variables.css';
 
 export function App() {
-  const { navigate, isHome, hymnNumber } = useHashRoute();
-  const { theme, fontFamily, fontSize } = useSettings();
+  const { navigate, section, hymnNumber, bibleBook, bibleChapter } = useHashRoute();
+  const { theme, fontFamily, fontSize, color } = useSettings();
 
-  const [showSettings, setShowSettings] = useState(false);
-  const [showFavorites, setShowFavorites] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
-  const [showCache, setShowCache] = useState(false);
+  const [himnarioSearch, setHimnarioSearch] = useState('');
+  const [bibliaSearch, setBibliaSearch] = useState('');
 
   useEffect(() => {
     storage.initializeDefaults();
@@ -45,41 +45,97 @@ export function App() {
     document.documentElement.style.fontSize = fontSizeMap[fontSize] || '16px';
   }, [theme, fontFamily, fontSize]);
 
-  const handleNavigate = (numero: number) => {
+  const handleNavigate = (path: string) => {
+    navigate(path);
+  };
+
+  const handleNavigateNumber = (numero: number) => {
     navigate(String(numero));
   };
 
-  const handleNavigateHome = () => {
-    navigate('home');
+  const getSearchProps = () => {
+    if (section === 'himnario' && hymnNumber === null) {
+      return {
+        searchValue: himnarioSearch,
+        onSearchChange: setHimnarioSearch,
+        searchPlaceholder: 'Buscar himno o por número...',
+        showSearch: true,
+      };
+    }
+    if (section === 'biblia' && !bibleChapter) {
+      return {
+        searchValue: bibliaSearch,
+        onSearchChange: setBibliaSearch,
+        searchPlaceholder: 'Buscar libro...',
+        showSearch: true,
+      };
+    }
+    return { showSearch: false };
   };
+
+  const renderContent = () => {
+    switch (section) {
+      case 'biblia':
+        if (bibleBook && bibleChapter) {
+          return (
+            <BibleChapter
+              bookId={bibleBook}
+              chapter={bibleChapter}
+              onNavigate={handleNavigate}
+            />
+          );
+        }
+        return (
+          <BibleHome
+            searchQuery={bibliaSearch}
+            onSearchChange={setBibliaSearch}
+            onNavigate={handleNavigate}
+          />
+        );
+
+      case 'favoritos':
+        return <FavoritesView onNavigate={handleNavigate} />;
+
+      case 'info':
+        return <InfoView onNavigate={handleNavigate} />;
+
+      case 'configuracion':
+        return <SettingsView onNavigate={handleNavigate} />;
+
+      case 'himnario':
+      default:
+        if (hymnNumber !== null) {
+          return (
+            <HymnView
+              numero={hymnNumber}
+              onNavigateHome={() => handleNavigate('home')}
+            />
+          );
+        }
+        return (
+          <Home
+            searchQuery={himnarioSearch}
+            onSearchChange={setHimnarioSearch}
+            onNavigate={handleNavigateNumber}
+            onOpenFavorites={() => handleNavigate('favoritos')}
+          />
+        );
+    }
+  };
+
+  const hideNav = (section === 'himnario' && hymnNumber !== null) || (section === 'biblia' && bibleBook && bibleChapter);
 
   return (
     <>
-      {isHome ? (
-        <Home
+      {!hideNav && (
+        <TabBar
+          section={section}
+          color={color}
           onNavigate={handleNavigate}
-          onOpenSettings={() => setShowSettings(true)}
-          onOpenFavorites={() => setShowFavorites(true)}
-          onOpenInfo={() => setShowInfo(true)}
-        />
-      ) : hymnNumber !== null ? (
-        <HymnView
-          numero={hymnNumber}
-          onNavigateHome={handleNavigateHome}
-        />
-      ) : (
-        <Home
-          onNavigate={handleNavigate}
-          onOpenSettings={() => setShowSettings(true)}
-          onOpenFavorites={() => setShowFavorites(true)}
-          onOpenInfo={() => setShowInfo(true)}
+          {...getSearchProps()}
         />
       )}
-
-      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
-      <FavoritesModal isOpen={showFavorites} onClose={() => setShowFavorites(false)} onNavigate={handleNavigate} />
-      <InfoModal isOpen={showInfo} onClose={() => setShowInfo(false)} />
-      <CacheManagerModal isOpen={showCache} onClose={() => setShowCache(false)} />
+      {renderContent()}
     </>
   );
 }

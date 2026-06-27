@@ -194,7 +194,7 @@
 
 .main {
   padding-top: 80px;
-  padding-bottom: var(--space-xxl);
+  padding-bottom: calc(var(--space-xxl) + 64px);
 }
 
 .titleSection {
@@ -361,6 +361,39 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.mobileSearchHeader {
+  /* Visible on mobile, hidden on desktop where TabBar has the search */
+}
+
+.inlineResults {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(24ch, 1fr));
+  gap: var(--space-sm);
+  padding: 0 var(--space-lg);
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.noResults {
+  text-align: center;
+  padding: var(--space-xxl);
+  opacity: 0.7;
+}
+
+@media (min-width: 768px) {
+  .mobileSearchHeader {
+    display: none;
+  }
+
+  .main {
+    padding-top: 56px;
+  }
+
+  .searchResults {
+    top: 72px;
+  }
 }
 
 /* Colors */

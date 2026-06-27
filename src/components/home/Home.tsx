@@ -2,21 +2,20 @@ import { useState, useEffect, useRef } from 'preact/hooks';
 import { fetchHimnos } from '../../services/api';
 import { CATEGORIAS } from '../../data/categorias';
 import type { Himno } from '../../types/himno';
-import { SearchIcon, CloseIcon, ChevronDownIcon, StarIcon, InfoIcon, SettingsIcon } from '../ui/Icons';
+import { SearchIcon, CloseIcon, ChevronDownIcon, StarIcon } from '../ui/Icons';
 import { useSettings } from '../../hooks/useSettings';
 import { useFavorites } from '../../hooks/useFavorites';
 import styles from './Home.module.css';
 
 interface HomeProps {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
   onNavigate: (hymnNumber: number) => void;
-  onOpenSettings: () => void;
   onOpenFavorites: () => void;
-  onOpenInfo: () => void;
 }
 
-export function Home({ onNavigate, onOpenSettings, onOpenFavorites, onOpenInfo }: HomeProps) {
+export function Home({ searchQuery, onSearchChange, onNavigate, onOpenFavorites }: HomeProps) {
   const [himnos, setHimnos] = useState<Himno[] | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set([0]));
   const [showSearchResults, setShowSearchResults] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -97,22 +96,22 @@ export function Home({ onNavigate, onOpenSettings, onOpenFavorites, onOpenInfo }
     const num = parseInt(searchQuery, 10);
     if (filteredHimnos.length > 0) {
       onNavigate(filteredHimnos[0].himno.numero);
-      setSearchQuery('');
+      onSearchChange('');
       setShowSearchResults(false);
     } else if (num > 0 && num <= 706) {
       onNavigate(num);
-      setSearchQuery('');
+      onSearchChange('');
     }
   };
 
   const handleResultClick = (numero: number) => {
     onNavigate(numero);
-    setSearchQuery('');
+    onSearchChange('');
   };
 
   return (
     <div class={styles.container} data-theme={theme}>
-      <header class={`${styles.header} ${styles[color]}`}>
+      <header class={`${styles.header} ${styles.mobileSearchHeader} ${styles[color]}`}>
         <form class={styles.searchForm} onSubmit={handleSearchSubmit}>
           <div class={styles.searchWrapper}>
             <SearchIcon size={24} className={styles.searchIcon} />
@@ -121,27 +120,18 @@ export function Home({ onNavigate, onOpenSettings, onOpenFavorites, onOpenInfo }
               type="text"
               placeholder="Buscar himno o por número..."
               value={searchQuery}
-              onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
+              onInput={(e) => onSearchChange((e.target as HTMLInputElement).value)}
               onFocus={handleSearchFocus}
               onBlur={handleSearchBlur}
               class={styles.searchInput}
             />
             {searchQuery && (
-              <button type="button" class={styles.clearBtn} onClick={() => setSearchQuery('')}>
+              <button type="button" class={styles.clearBtn} onClick={() => onSearchChange('')}>
                 <CloseIcon size={20} />
               </button>
             )}
           </div>
         </form>
-
-        <nav class={styles.nav}>
-          <button class={styles.navBtn} onClick={onOpenInfo} title="Información">
-            <InfoIcon size={24} />
-          </button>
-          <button class={styles.navBtn} onClick={onOpenSettings} title="Ajustes">
-            <SettingsIcon size={24} />
-          </button>
-        </nav>
       </header>
 
       {showSearchResults && filteredHimnos.length > 0 && (
@@ -170,51 +160,71 @@ export function Home({ onNavigate, onOpenSettings, onOpenFavorites, onOpenInfo }
           <h2 class={styles.subtitle}>Himnario Evangélico Presbiteriano</h2>
         </div>
 
-        <div class={styles.categories}>
-          {CATEGORIAS.map((categoria, catIndex) => (
-            <div key={catIndex} class={styles.category}>
-              <h2 class={styles.categoryTitle}>{categoria.titulo}</h2>
+        {searchQuery.length > 0 && filteredHimnos.length > 0 ? (
+          <div class={styles.inlineResults}>
+            {filteredHimnos.map(({ himno }) => (
+              <button
+                key={himno.numero}
+                class={`${styles.hymnCard} ${styles[color]}`}
+                onClick={() => handleResultClick(himno.numero)}
+              >
+                <span class={styles.hymnNumber}>{himno.numero}</span>
+                <span class={styles.hymnTitle}>{highlightMatch(himno.titulo)}</span>
+                {favorites.includes(himno.numero) && <StarIcon size={16} className={styles.favStar} />}
+              </button>
+            ))}
+          </div>
+        ) : searchQuery.length > 0 ? (
+          <div class={styles.noResults}>
+            <p>No se encontraron himnos para "<strong>{searchQuery}</strong>"</p>
+          </div>
+        ) : (
+          <div class={styles.categories}>
+            {CATEGORIAS.map((categoria, catIndex) => (
+              <div key={catIndex} class={styles.category}>
+                <h2 class={styles.categoryTitle}>{categoria.titulo}</h2>
 
-              {categoria.grupos.map((grupo, groupIndex) => (
-                <div key={groupIndex} class={styles.group}>
-                  <button
-                    class={`${styles.groupHeader} ${styles[color]}`}
-                    onClick={() => toggleCategory(catIndex * 100 + groupIndex)}
-                  >
-                    <span class={styles.groupTitle}>{grupo.titulo}</span>
-                    <span class={styles.groupRange}>{grupo.inicio} - {grupo.fin}</span>
-                    <ChevronDownIcon
-                      size={20}
-                      className={`${styles.chevron} ${expandedCategories.has(catIndex * 100 + groupIndex) ? styles.expanded : ''}`}
-                    />
-                  </button>
+                {categoria.grupos.map((grupo, groupIndex) => (
+                  <div key={groupIndex} class={styles.group}>
+                    <button
+                      class={`${styles.groupHeader} ${styles[color]}`}
+                      onClick={() => toggleCategory(catIndex * 100 + groupIndex)}
+                    >
+                      <span class={styles.groupTitle}>{grupo.titulo}</span>
+                      <span class={styles.groupRange}>{grupo.inicio} - {grupo.fin}</span>
+                      <ChevronDownIcon
+                        size={20}
+                        className={`${styles.chevron} ${expandedCategories.has(catIndex * 100 + groupIndex) ? styles.expanded : ''}`}
+                      />
+                    </button>
 
-                  {expandedCategories.has(catIndex * 100 + groupIndex) && himnos && (
-                    <div class={styles.hymnList}>
-                      {Array.from({ length: grupo.fin - grupo.inicio + 1 }, (_, i) => grupo.inicio + i)
-                        .map(num => {
-                          const himno = himnos.find(h => h && h.numero === num);
-                          if (!himno) return null;
-                          const isFavorite = favorites.includes(num);
-                          return (
-                            <button
-                              key={num}
-                              class={`${styles.hymnCard} ${styles[color]}`}
-                              onClick={() => onNavigate(num)}
-                            >
-                              <span class={styles.hymnNumber}>{himno.numero}</span>
-                              <span class={styles.hymnTitle}>{himno.titulo}</span>
-                              {isFavorite && <StarIcon size={16} className={styles.favStar} />}
-                            </button>
-                          );
-                        })}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
+                    {expandedCategories.has(catIndex * 100 + groupIndex) && himnos && (
+                      <div class={styles.hymnList}>
+                        {Array.from({ length: grupo.fin - grupo.inicio + 1 }, (_, i) => grupo.inicio + i)
+                          .map(num => {
+                            const himno = himnos.find(h => h && h.numero === num);
+                            if (!himno) return null;
+                            const isFavorite = favorites.includes(num);
+                            return (
+                              <button
+                                key={num}
+                                class={`${styles.hymnCard} ${styles[color]}`}
+                                onClick={() => onNavigate(num)}
+                              >
+                                <span class={styles.hymnNumber}>{himno.numero}</span>
+                                <span class={styles.hymnTitle}>{himno.titulo}</span>
+                                {isFavorite && <StarIcon size={16} className={styles.favStar} />}
+                              </button>
+                            );
+                          })}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
 
         {himnos === null && (
           <div class={styles.loading}>

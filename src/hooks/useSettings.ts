@@ -26,11 +26,16 @@ export function useSettings() {
     storage.theme = theme;
   }, []);
 
+  const updateBibleVersion = useCallback((version: string) => {
+    storage.bibleVersion = version;
+  }, []);
+
   return {
     ...settings,
     updateColor,
     updateFontSize,
     updateFontFamily,
-    updateTheme
+    updateTheme,
+    updateBibleVersion
   };
 }

@@ -57,6 +57,7 @@ export interface Settings {
   fontSizeValue: number;
   fontFamily: FontFamily;
   theme: Theme;
+  bibleVersion: string;
 }
 
 export interface CacheEntry {
