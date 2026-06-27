@@ -1,0 +1,54 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  z-index: var(--z-dropdown);
+  box-shadow: var(--shadow-2);
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 var(--space-lg);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.left, .right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.left {
+  flex: 1;
+}
+
+.right {
+  flex-shrink: 0;
+}
+
+/* Colors */
+.navbar.red { background-color: var(--color-red); color: white; }
+.navbar.pink { background-color: var(--color-pink); color: white; }
+.navbar.purple { background-color: var(--color-purple); color: white; }
+.navbar.deep-purple { background-color: var(--color-deep-purple); color: white; }
+.navbar.indigo { background-color: var(--color-indigo); color: white; }
+.navbar.blue { background-color: var(--color-blue); color: white; }
+.navbar.light-blue { background-color: var(--color-light-blue); color: white; }
+.navbar.cyan { background-color: var(--color-cyan); color: white; }
+.navbar.teal { background-color: var(--color-teal); color: white; }
+.navbar.green { background-color: var(--color-green); color: white; }
+.navbar.light-green { background-color: var(--color-light-green); color: white; }
+.navbar.lime { background-color: var(--color-lime); color: white; }
+.navbar.yellow { background-color: var(--color-yellow); color: white; }
+.navbar.amber { background-color: var(--color-amber); color: white; }
+.navbar.orange { background-color: var(--color-orange); color: white; }
+.navbar.deep-orange { background-color: var(--color-deep-orange); color: white; }
+.navbar.brown { background-color: var(--color-brown); color: white; }
+.navbar.grey { background-color: var(--color-grey); color: white; }
+.navbar.blue-grey { background-color: var(--color-blue-grey); color: white; }

@@ -1,0 +1,150 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-medium);
+  line-height: 1.6;
+  color: var(--on-background);
+  background-color: var(--background);
+  min-height: 100vh;
+  max-width: 100vw;
+  overflow-x: hidden;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+/* Font size classes */
+body.small { font-size: var(--font-size-small); }
+body.medium { font-size: var(--font-size-medium); }
+body.large { font-size: var(--font-size-large); }
+body.x-large { font-size: var(--font-size-x-large); }
+body.xx-large { font-size: var(--font-size-xx-large); }
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-grey);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-blue-grey);
+}
+
+/* Selection */
+::selection {
+  background-color: var(--primary);
+  color: var(--on-primary);
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Hide visually but accessible */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Print styles */
+@media print {
+  header {
+    display: none !important;
+  }
+
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  html, body {
+    background: white !important;
+    color: black !important;
+  }
+
+  [data-theme] {
+    --background: white !important;
+    --surface: white !important;
+    --on-background: black !important;
+    --on-surface: black !important;
+  }
+
+  [data-theme="dark"],
+  [data-theme="oled"],
+  [data-theme="sepia"],
+  [data-theme="light"] {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  * {
+    line-height: 1 !important;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0 !important;
+    line-height: 1 !important;
+    padding: 0 !important;
+  }
+}

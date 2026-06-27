@@ -1,0 +1,64 @@
+.container {
+  width: 100%;
+}
+
+.label {
+  display: block;
+  font-size: var(--font-size-medium);
+  color: var(--on-surface);
+  margin-bottom: var(--space-sm);
+}
+
+.select {
+  width: 100%;
+  padding: var(--space-md);
+  font-size: var(--font-size-medium);
+  border: 2px solid color-mix(in srgb, var(--color-grey) 50%, transparent);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--on-surface);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-md) center;
+  background-size: 20px;
+  padding-right: calc(var(--space-md) * 2 + 20px);
+  transition: border-color var(--transition-fast);
+}
+
+.select:hover {
+  border-color: var(--color-grey);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.select option {
+  padding: var(--space-md);
+  background-color: var(--surface);
+  color: var(--on-surface);
+}
+
+/* Colors */
+.select.red { border-color: var(--color-red); }
+.select.pink { border-color: var(--color-pink); }
+.select.purple { border-color: var(--color-purple); }
+.select.deep-purple { border-color: var(--color-deep-purple); }
+.select.indigo { border-color: var(--color-indigo); }
+.select.blue { border-color: var(--color-blue); }
+.select.light-blue { border-color: var(--color-light-blue); }
+.select.cyan { border-color: var(--color-cyan); }
+.select.teal { border-color: var(--color-teal); }
+.select.green { border-color: var(--color-green); }
+.select.light-green { border-color: var(--color-light-green); }
+.select.lime { border-color: var(--color-lime); }
+.select.yellow { border-color: var(--color-yellow); }
+.select.amber { border-color: var(--color-amber); }
+.select.orange { border-color: var(--color-orange); }
+.select.deep-orange { border-color: var(--color-deep-orange); }
+.select.brown { border-color: var(--color-brown); }
+.select.grey { border-color: var(--color-grey); }
+.select.blue-grey { border-color: var(--color-blue-grey); }

@@ -1,0 +1,105 @@
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.iconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.iconButton svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Sizes */
+.small {
+  width: 32px;
+  height: 32px;
+  padding: var(--space-xs);
+}
+
+.small svg {
+  width: 20px;
+  height: 20px;
+}
+
+.medium {
+  width: 40px;
+  height: 40px;
+  padding: var(--space-sm);
+}
+
+.medium svg {
+  width: 24px;
+  height: 24px;
+}
+
+.large {
+  width: 56px;
+  height: 56px;
+  padding: var(--space-md);
+}
+
+.large svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* Variants */
+.filled {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--shadow-1);
+}
+
+.filled:hover:not(:disabled) {
+  box-shadow: var(--shadow-2);
+  transform: scale(1.05);
+}
+
+.outlined {
+  background-color: transparent;
+  color: var(--primary);
+  border: 1px solid currentColor;
+}
+
+.outlined:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.text {
+  background-color: transparent;
+  color: var(--on-surface);
+}
+
+.text:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+/* Colors */
+.red { background-color: var(--color-red); color: white; }
+.pink { background-color: var(--color-pink); color: white; }
+.purple { background-color: var(--color-purple); color: white; }
+.deep-purple { background-color: var(--color-deep-purple); color: white; }
+.indigo { background-color: var(--color-indigo); color: white; }
+.blue { background-color: var(--color-blue); color: white; }
+.light-blue { background-color: var(--color-light-blue); color: white; }
+.cyan { background-color: var(--color-cyan); color: white; }
+.teal { background-color: var(--color-teal); color: white; }
+.green { background-color: var(--color-green); color: white; }
+.light-green { background-color: var(--color-light-green); color: white; }
+.lime { background-color: var(--color-lime); color: white; }
+.yellow { background-color: var(--color-yellow); color: white; }
+.amber { background-color: var(--color-amber); color: white; }
+.orange { background-color: var(--color-orange); color: white; }
+.deep-orange { background-color: var(--color-deep-orange); color: white; }
+.brown { background-color: var(--color-brown); color: white; }
+.grey { background-color: var(--color-grey); color: white; }
+.blue-grey { background-color: var(--color-blue-grey); color: white; }

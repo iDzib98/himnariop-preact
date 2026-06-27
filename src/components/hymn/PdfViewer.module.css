@@ -1,0 +1,173 @@
+.container {
+  position: fixed;
+  inset: 0;
+  background-color: var(--background);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-lg);
+  color: white;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.closeBtn {
+  position: absolute;
+  left: var(--space-lg);
+  padding: var(--space-sm);
+  color: white;
+  border-radius: var(--radius-full);
+  transition: background-color var(--transition-fast);
+}
+
+.closeBtn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.title {
+  font-weight: 500;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.controlBtnFullscreen {
+  position: absolute;
+  right: var(--space-lg);
+  padding: var(--space-sm);
+  color: white;
+  border-radius: var(--radius-full);
+  transition: background-color var(--transition-fast);
+}
+
+.controlBtnFullscreen:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.controlBtn {
+  padding: var(--space-sm);
+  color: white;
+  border-radius: var(--radius-full);
+  transition: background-color var(--transition-fast);
+}
+
+.controlBtn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.iframeContainer {
+  flex: 1;
+  position: relative;
+}
+
+.iframeContainer.dark {
+  background-color: #1e1e1e;
+}
+
+.iframeContainer.sepia {
+  background-color: #f4ecd8;
+}
+
+.iframeContainer.oled {
+  background-color: #000000;
+}
+
+.iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.pdfJsContainer {
+  flex: 1;
+  display: block;
+  overflow: auto;
+  padding: var(--space-md);
+}
+
+.canvasWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.canvasWrapper.alignStart {
+  justify-content: flex-start;
+}
+
+.pdfJsContainer.dark {
+  background-color: #1e1e1e;
+}
+
+.pdfJsContainer.sepia {
+  background-color: #f4ecd8;
+}
+
+.pdfJsContainer.oled {
+  background-color: #000000;
+}
+
+.canvas {
+  box-shadow: var(--shadow-3);
+}
+
+.canvas.inverted {
+  filter: invert(1);
+}
+
+.loading, .error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-secondary);
+}
+
+.error {
+  color: var(--color-red);
+}
+
+.scaleInfo {
+  font-size: var(--font-size-small);
+  color: white;
+  min-width: 50px;
+  text-align: center;
+}
+
+/* Colors */
+.black { background-color: var(--color-black); }
+.red { background-color: var(--color-red); }
+.pink { background-color: var(--color-pink); }
+.purple { background-color: var(--color-purple); }
+.deep-purple { background-color: var(--color-deep-purple); }
+.indigo { background-color: var(--color-indigo); }
+.blue { background-color: var(--color-blue); }
+.light-blue { background-color: var(--color-light-blue); }
+.cyan { background-color: var(--color-cyan); }
+.teal { background-color: var(--color-teal); }
+.green { background-color: var(--color-green); }
+.light-green { background-color: var(--color-light-green); color: white; }
+.lime { background-color: var(--color-lime); color: white; }
+.yellow { background-color: var(--color-yellow); color: white; }
+.amber { background-color: var(--color-amber); color: white; }
+.orange { background-color: var(--color-orange); }
+.deep-orange { background-color: var(--color-deep-orange); }
+.brown { background-color: var(--color-brown); }
+.grey { background-color: var(--color-grey); }
+.blue-grey { background-color: var(--color-blue-grey); }

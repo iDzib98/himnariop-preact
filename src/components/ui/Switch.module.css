@@ -1,0 +1,79 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.label {
+  font-size: var(--font-size-medium);
+  color: var(--on-surface);
+}
+
+.input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switchWrapper {
+  position: relative;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 32px;
+  background-color: var(--color-grey);
+  border-radius: var(--radius-full);
+  transition: background-color var(--transition-fast);
+}
+
+.switch.checked {
+  background-color: var(--primary);
+}
+
+.slider {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  background-color: white;
+  border-radius: var(--radius-full);
+  transition: transform var(--transition-fast);
+  box-shadow: var(--shadow-1);
+}
+
+.input:checked + .switch .slider {
+  transform: translateX(20px);
+}
+
+.input:focus-visible + .switch {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Colors */
+.switch.red { background-color: var(--color-red); }
+.switch.pink { background-color: var(--color-pink); }
+.switch.purple { background-color: var(--color-purple); }
+.switch.deep-purple { background-color: var(--color-deep-purple); }
+.switch.indigo { background-color: var(--color-indigo); }
+.switch.blue { background-color: var(--color-blue); }
+.switch.light-blue { background-color: var(--color-light-blue); }
+.switch.cyan { background-color: var(--color-cyan); }
+.switch.teal { background-color: var(--color-teal); }
+.switch.green { background-color: var(--color-green); }
+.switch.light-green { background-color: var(--color-light-green); }
+.switch.lime { background-color: var(--color-lime); }
+.switch.yellow { background-color: var(--color-yellow); }
+.switch.amber { background-color: var(--color-amber); }
+.switch.orange { background-color: var(--color-orange); }
+.switch.deep-orange { background-color: var(--color-deep-orange); }
+.switch.brown { background-color: var(--color-brown); }
+.switch.grey { background-color: var(--color-grey); }
+.switch.blue-grey { background-color: var(--color-blue-grey); }

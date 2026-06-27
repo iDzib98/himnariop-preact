@@ -1,0 +1,132 @@
+.titulo_himno, .titulo {
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.titulo_verso, .subtitulo {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.referencias {
+    text-align: end;
+}
+
+.small {
+    font-size: small;
+}
+
+.medium {
+    font-size: medium;
+}
+
+.large {
+    font-size: large;
+}
+
+.x-large {
+    font-size: x-large;
+}
+
+.xx-large {
+    font-size: xx-large;
+}
+
+.monospace {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.serif {
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.sans-serif {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.collapsible, .collapsible-header, .collapsible-body{
+    border-radius: 1rem;
+    border: 0;
+    font-weight: bold;
+    margin:.5rem 0;
+}
+
+.collapsible-body {
+    padding: .5rem .5rem;
+}
+
+.lista-himnos {
+    z-index: 1003;
+    position: fixed;
+    width: 100%;
+    max-height: 80vh;
+    overflow: auto;
+    margin: 0;
+    border: 0;
+}
+
+.dark, 
+.dark > .modal, 
+.dark > .modal .modal-footer, 
+.dark > .select-wrapper .select-dropdown{
+    background-color: black;
+    color: white;
+}
+
+.dark > .modal .modal-footer .btn-flat{
+    color: white !important;
+}
+
+.linea-verso {
+    font-weight: bold;
+    line-height: 1.1;
+}
+
+.reveal .progress {
+    margin: 0 !important;
+}
+
+@media print {
+    header {
+        display: none !important;
+    }
+
+    [data-print-hide] {
+        display: none !important;
+    }
+
+    html, body {
+        background-color: white !important;
+        color: black !important;
+    }
+
+    [data-theme="dark"],
+    [data-theme="oled"],
+    [data-theme="sepia"],
+    [data-theme="light"] {
+        --background: white !important;
+        --surface: white !important;
+        --on-background: black !important;
+        --on-surface: black !important;
+    }
+
+    [data-theme="dark"],
+    [data-theme="oled"],
+    [data-theme="sepia"],
+    [data-theme="light"],
+    [data-theme],
+    body {
+        background-color: white !important;
+        color: black !important;
+    }
+
+    * {
+        line-height: 1 !important;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        margin: 0 !important;
+        line-height: 1 !important;
+        padding: 0 !important;
+    }
+}

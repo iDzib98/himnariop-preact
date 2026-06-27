@@ -1,0 +1,86 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xxl);
+  text-align: center;
+  color: var(--color-grey);
+}
+
+.emptyIcon {
+  margin-bottom: var(--space-lg);
+  opacity: 0.5;
+}
+
+.hint {
+  font-size: var(--font-size-small);
+  margin-top: var(--space-sm);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.item {
+  list-style: none;
+}
+
+.hymnBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  color: white;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.hymnBtn:hover {
+  filter: brightness(1.1);
+}
+
+.number {
+  font-weight: bold;
+  min-width: 40px;
+}
+
+.title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--space-lg);
+  margin-top: var(--space-lg);
+  border-top: 1px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
+}
+
+/* Colors */
+.red { background-color: var(--color-red); }
+.pink { background-color: var(--color-pink); }
+.purple { background-color: var(--color-purple); }
+.deep-purple { background-color: var(--color-deep-purple); }
+.indigo { background-color: var(--color-indigo); }
+.blue { background-color: var(--color-blue); }
+.light-blue { background-color: var(--color-light-blue); }
+.cyan { background-color: var(--color-cyan); }
+.teal { background-color: var(--color-teal); }
+.green { background-color: var(--color-green); }
+.light-green { background-color: var(--color-light-green); color: white; }
+.lime { background-color: var(--color-lime); color: white; }
+.yellow { background-color: var(--color-yellow); color: white; }
+.amber { background-color: var(--color-amber); color: white; }
+.orange { background-color: var(--color-orange); }
+.deep-orange { background-color: var(--color-deep-orange); }
+.brown { background-color: var(--color-brown); }
+.grey { background-color: var(--color-grey); }
+.blue-grey { background-color: var(--color-blue-grey); }
