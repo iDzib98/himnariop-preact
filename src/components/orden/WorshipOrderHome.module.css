@@ -1,4 +1,5 @@
 .container {
+  width: 100%;
   padding: 80px 16px 80px;
   max-width: 800px;
   margin: 0 auto;
@@ -8,13 +9,27 @@
 @media (min-width: 768px) {
   .container {
     padding-top: 72px;
+    max-width: 900px;
   }
 }
 
-.header {
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1100px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .card:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+}
+
+.topActions {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .createBtn {
@@ -28,6 +43,55 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.churchBtnNav {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: none;
+  color: var(--on-background);
+  cursor: pointer;
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: none;
+  color: var(--on-background);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.tab:hover {
+  background: var(--hover-bg, rgba(128, 128, 128, 0.1));
+}
+
+.tabActive {
+  color: #fff;
+}
+
+.syncing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  opacity: 0.6;
+  margin-bottom: 12px;
 }
 
 .empty {
@@ -46,18 +110,44 @@
   gap: 12px;
 }
 
+@media (min-width: 600px) {
+  .list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
 .card {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 8px;
   padding: 16px;
   border-radius: 10px;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, transform 0.2s;
 }
 
-.card:hover {
-  opacity: 0.85;
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.readOnly {
+  opacity: 0.8;
+}
+
+.readOnlyBadge {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--border-color);
+  margin-left: 8px;
+  vertical-align: middle;
+  opacity: 0.7;
 }
 
 .cardBody {
@@ -77,10 +167,74 @@
   opacity: 0.7;
 }
 
+.cardDesc {
+  margin: 4px 0 0;
+  font-size: 13px;
+  opacity: 0.65;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .cardDate {
   margin: 2px 0 0;
   font-size: 12px;
+  opacity: 0.7;
+}
+
+.cardCreated {
+  margin: 2px 0 0;
+  font-size: 12px;
   opacity: 0.5;
+}
+
+.activeCard {
+  box-shadow: 0 0 0 2px var(--primary, #4caf50), 0 4px 12px rgba(76, 175, 80, 0.3);
+  position: relative;
+}
+
+.activeBadge {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #4caf50;
+  color: #fff;
+  margin-right: 8px;
+  vertical-align: middle;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.pastToggle {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.toggleLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0.7;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.toggleLabel:hover {
+  background: var(--hover-bg, rgba(128, 128, 128, 0.1));
+}
+
+.toggleLabel input {
+  accent-color: var(--primary, #4caf50);
 }
 
 .cardActions {
@@ -114,9 +268,113 @@
   opacity: 1;
 }
 
+.churchSection {
+  margin-bottom: 20px;
+}
+
+.churchHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.churchHeader h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  flex: 1;
+}
+
+.churchCode {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  font-family: monospace;
+}
+
+.churchEmpty {
+  text-align: center;
+  padding: 20px;
+  opacity: 0.5;
+  font-size: 0.9rem;
+}
+
 @media print {
-  .header, .editBtn, .deleteBtn {
+  .topActions, .editBtn, .deleteBtn, .tabs, .churchBtnNav {
     display: none !important;
+  }
+}
+
+.mobileSearchHeader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: var(--shadow-2);
+}
+
+.searchForm {
+  flex: 1;
+  max-width: 600px;
+}
+
+.searchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 24px;
+  padding-left: 44px;
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 9999px;
+  color: white;
+  font-size: 16px;
+  transition: all var(--transition-fast);
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+}
+
+.searchInput:focus {
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.clearBtn {
+  position: absolute;
+  right: 8px;
+  padding: 4px;
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 9999px;
+  transition: color var(--transition-fast);
+}
+
+.clearBtn:hover {
+  color: white;
+}
+
+@media (min-width: 768px) {
+  .mobileSearchHeader {
+    display: none;
   }
 }
 

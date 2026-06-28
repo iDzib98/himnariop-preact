@@ -171,6 +171,18 @@
   margin: 0 auto;
 }
 
+@media (min-width: 768px) {
+  .main {
+    max-width: 900px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main {
+    max-width: 1100px;
+  }
+}
+
 .verses {
   padding: var(--space-lg);
 }

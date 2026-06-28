@@ -31,7 +31,7 @@ export function saveOrder(order: WorshipOrder): void {
 }
 
 export function deleteOrder(id: string): void {
-  const orders = getOrders().filter(o => o.id !== id);
+  const orders = getOrders().filter(o => o.id !== id && o.cloudId !== id);
   localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
 }
 

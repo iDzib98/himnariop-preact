@@ -17,7 +17,8 @@ import {
   TvIcon,
   QueueMusicIcon,
   PrintIcon,
-  ShareIcon
+  ShareIcon,
+  CloseIcon
 } from '../ui/Icons';
 import styles from './HymnView.module.css';
 
@@ -67,8 +68,8 @@ export function HymnView({ numero, onNavigateHome, returnTo }: HymnViewProps) {
     return (
       <div class={styles.container} data-theme={theme}>
         <header class={`${styles.header} ${styles[color]}`}>
-          <button class={styles.iconBtn} onClick={() => returnTo ? (window.location.hash = returnTo) : onNavigateHome()}>
-            <HomeIcon size={24} />
+          <button class={styles.iconBtn} onClick={() => returnTo ? (window.location.hash = returnTo) : onNavigateHome()} title={returnTo ? 'Cerrar' : 'Inicio'}>
+            {returnTo ? <CloseIcon size={24} /> : <HomeIcon size={24} />}
           </button>
         </header>
         <div class={styles.error}>{error || 'Himno no encontrado'}</div>
@@ -104,8 +105,8 @@ export function HymnView({ numero, onNavigateHome, returnTo }: HymnViewProps) {
     <div class={styles.container} data-theme={theme}>
       <header class={`${styles.header} ${styles[color]}`}>
         <div class={styles.headerLeft}>
-          <button class={styles.iconBtn} onClick={() => returnTo ? (window.location.hash = returnTo) : onNavigateHome()} title="Inicio">
-            <HomeIcon size={24} />
+          <button class={styles.iconBtn} onClick={() => returnTo ? (window.location.hash = returnTo) : onNavigateHome()} title={returnTo ? 'Cerrar' : 'Inicio'}>
+            {returnTo ? <CloseIcon size={24} /> : <HomeIcon size={24} />}
           </button>
         </div>
         <div class={styles.headerCenter}>

@@ -3,7 +3,8 @@ import { Slider } from '../ui/Slider';
 import { useSettings } from '../../hooks/useSettings';
 import type { ColorOption, FontSize, FontFamily, Theme } from '../../types/himno';
 import { BIBLE_VERSIONS } from '../../data/bibleVersions';
-import { ChevronLeftIcon } from '../ui/Icons';
+import { ChevronLeftIcon, GoogleIcon, ChurchIcon } from '../ui/Icons';
+import { signInWithGoogle, signOut, getCurrentUser, onAuthChange } from '../../services/authService';
 import styles from './SettingsView.module.css';
 
 interface SettingsViewProps {
@@ -53,6 +54,13 @@ export function SettingsView({ onNavigate }: SettingsViewProps) {
   const [tempColor, setTempColor] = useState(color);
   const [tempFontSize, setTempFontSize] = useState(fontSizeValue);
   const [isLargeFont, setIsLargeFont] = useState(false);
+  const [user, setUser] = useState(getCurrentUser());
+
+  useEffect(() => {
+    return onAuthChange((u) => {
+      setUser(u);
+    });
+  }, []);
 
   useEffect(() => {
     const checkFontSize = () => {
@@ -169,6 +177,35 @@ export function SettingsView({ onNavigate }: SettingsViewProps) {
               </button>
             ))}
           </div>
+        </div>
+
+        <div class={styles.section}>
+          <h3 class={styles.sectionTitle}>Cuenta</h3>
+          {user ? (
+            <div class={styles.authInfo}>
+              <div class={styles.userInfo}>
+                {user.photoURL && <img src={user.photoURL} class={styles.userAvatar} alt="" />}
+                <div>
+                  <p class={styles.userName}>{user.displayName || 'Usuario'}</p>
+                  <p class={styles.userEmail}>{user.email}</p>
+                </div>
+              </div>
+              <button class={styles.secondaryBtn} onClick={() => signOut()}>
+                Cerrar sesión
+              </button>
+            </div>
+          ) : (
+            <button class={`${styles.googleBtn} ${styles[color]}`} onClick={() => signInWithGoogle()}>
+              <GoogleIcon size={20} /> Iniciar sesión con Google
+            </button>
+          )}
+        </div>
+
+        <div class={styles.section}>
+          <h3 class={styles.sectionTitle}>Iglesias</h3>
+          <button class={styles.churchManageBtn} onClick={() => onNavigate('orden/iglesias')}>
+            <ChurchIcon size={20} /> Administrar iglesias
+          </button>
         </div>
 
         <div class={styles.section}>

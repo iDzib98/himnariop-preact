@@ -45,7 +45,7 @@
 .main {
   padding-top: 64px;
   padding-bottom: calc(var(--space-xxl) + 64px);
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
 }
 
@@ -235,5 +235,81 @@
 
   .main {
     padding-top: 56px;
+    max-width: 900px;
   }
+}
+
+@media (min-width: 1024px) {
+  .main {
+    max-width: 1100px;
+  }
+}
+
+.authInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.userAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.userName {
+  margin: 0;
+  font-weight: 600;
+}
+
+.userEmail {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+.googleBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.secondaryBtn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: none;
+  color: var(--on-background);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.churchManageBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: none;
+  color: var(--on-background);
+  cursor: pointer;
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+.churchManageBtn:hover {
+  background: var(--hover-bg, rgba(128, 128, 128, 0.1));
 }

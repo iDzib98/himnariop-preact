@@ -2,6 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { storage } from './services/storage';
 import { useHashRoute } from './hooks/useHashRoute';
 import { useSettings } from './hooks/useSettings';
+import { initAuth } from './services/authService';
 import { Home } from './components/home/Home';
 import { HymnView } from './components/hymn/HymnView';
 import { BibleHome } from './components/bible/BibleHome';
@@ -13,19 +14,23 @@ import { InfoView } from './components/settings/InfoView';
 import { WorshipOrderHome } from './components/orden/WorshipOrderHome';
 import { WorshipOrderView } from './components/orden/WorshipOrderView';
 import { WorshipOrderEditor } from './components/orden/WorshipOrderEditor';
+import { ChurchManagerView } from './components/orden/ChurchManagerView';
 import { getReturnTo, setReturnTo } from './services/ordenStorage';
 import './styles/reset.css';
 import './styles/variables.css';
 
 export function App() {
-  const { navigate, section, hymnNumber, bibleBook, bibleChapter, bibleStartVerse, bibleEndVerse, ordenId, ordenEditing } = useHashRoute();
+  const { navigate, section, hymnNumber, bibleBook, bibleChapter, bibleStartVerse, bibleEndVerse, ordenId, ordenEditing, showIglesias, joinChurchCode } = useHashRoute();
   const { theme, fontFamily, fontSize, color } = useSettings();
 
   const [himnarioSearch, setHimnarioSearch] = useState('');
   const [bibliaSearch, setBibliaSearch] = useState('');
+  const [cultosSearch, setCultosSearch] = useState('');
+  const [favoritosSearch, setFavoritosSearch] = useState('');
 
   useEffect(() => {
     storage.initializeDefaults();
+    initAuth();
   }, []);
 
   useEffect(() => {
@@ -76,6 +81,22 @@ export function App() {
         showSearch: true,
       };
     }
+    if (section === 'orden' && !ordenId && !ordenEditing && !showIglesias) {
+      return {
+        searchValue: cultosSearch,
+        onSearchChange: setCultosSearch,
+        searchPlaceholder: 'Buscar culto...',
+        showSearch: true,
+      };
+    }
+    if (section === 'favoritos') {
+      return {
+        searchValue: favoritosSearch,
+        onSearchChange: setFavoritosSearch,
+        searchPlaceholder: 'Buscar favorito...',
+        showSearch: true,
+      };
+    }
     return { showSearch: false };
   };
 
@@ -105,16 +126,19 @@ export function App() {
         );
 
       case 'orden':
+        if (showIglesias) {
+          return <ChurchManagerView onNavigate={handleNavigate} initialJoinCode={joinChurchCode} />;
+        }
         if (ordenEditing && ordenId) {
           return <WorshipOrderEditor orderId={ordenId} onNavigate={handleNavigate} />;
         }
         if (ordenId) {
           return <WorshipOrderView orderId={ordenId} onNavigate={handleNavigate} />;
         }
-        return <WorshipOrderHome onNavigate={handleNavigate} />;
+        return <WorshipOrderHome onNavigate={handleNavigate} searchQuery={cultosSearch} onSearchChange={setCultosSearch} />;
 
       case 'favoritos':
-        return <FavoritesView onNavigate={handleNavigate} />;
+        return <FavoritesView onNavigate={handleNavigate} searchQuery={favoritosSearch} onSearchChange={setFavoritosSearch} />;
 
       case 'info':
         return <InfoView onNavigate={handleNavigate} />;

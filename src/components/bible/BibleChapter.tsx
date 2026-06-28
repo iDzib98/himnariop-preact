@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'preact/hooks';
 import { fetchChapter } from '../../services/bibleApi';
 import { getBookById } from '../../data/books';
 import type { BibleVerse } from '../../services/bibleApi';
-import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, BibleIcon, StarIcon, StarFilledIcon, TvIcon, PrintIcon, ShareIcon } from '../ui/Icons';
+import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, CloseIcon, BibleIcon, StarIcon, StarFilledIcon, TvIcon, PrintIcon, ShareIcon } from '../ui/Icons';
 import { useSettings } from '../../hooks/useSettings';
 import { storage } from '../../services/storage';
 import { BibleTvMode } from './BibleTvMode';
@@ -119,8 +119,8 @@ export function BibleChapter({ bookId, chapter, onNavigate, returnTo, startVerse
     <div class={styles.container} data-theme={theme}>
       <header class={`${styles.header} ${styles[color]}`}>
         <div class={styles.headerLeft}>
-          <button class={styles.iconBtn} onClick={() => returnTo ? (window.location.hash = returnTo) : onNavigate('biblia')} title="Biblia">
-            <BibleIcon size={24} />
+          <button class={styles.iconBtn} onClick={() => returnTo ? (window.location.hash = returnTo) : onNavigate('biblia')} title={returnTo ? 'Cerrar' : 'Biblia'}>
+            {returnTo ? <CloseIcon size={24} /> : <BibleIcon size={24} />}
           </button>
         </div>
         <div class={styles.headerCenter}>

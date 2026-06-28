@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /ordenes/{docId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.authorId;
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.authorId;
+    }
+
+    match /iglesias/{code} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null
+        && (resource.data.ownerId == request.auth.uid
+            || request.auth.uid in resource.data.adminIds);
+      allow delete: if request.auth != null
+        && resource.data.ownerId == request.auth.uid;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

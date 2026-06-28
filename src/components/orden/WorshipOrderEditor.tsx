@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'preact/hooks';
 import { getOrder, saveOrder, generateId } from '../../services/ordenStorage';
-import type { WorshipOrder, WorshipSlide, WorshipSlideType, Posture, ReadingFlow } from '../../types/orden';
+import type { WorshipOrder, WorshipSlide, WorshipSlideType, Posture, ReadingFlow, Church } from '../../types/orden';
 import { useSettings } from '../../hooks/useSettings';
 import { getBookById, BOOKS } from '../../data/books';
 import { getHimno, fetchHimnos } from '../../services/api';
 import { fetchChapter } from '../../services/bibleApi';
 import type { Himno } from '../../types/himno';
-import { ChevronUpIcon, ChevronDownIcon, DeleteIcon, PlusIcon, ChevronLeftIcon } from '../ui/Icons';
+import { getCurrentUser } from '../../services/authService';
+import { saveOrderToCloud } from '../../services/cloudOrdenService';
+import { getUserChurches } from '../../services/churchService';
+import { ChevronUpIcon, ChevronDownIcon, DeleteIcon, PlusIcon, ChevronLeftIcon, ShareIcon } from '../ui/Icons';
 import styles from './WorshipOrderEditor.module.css';
 
 interface Props {
@@ -88,6 +91,20 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
   const [showBookDropdown, setShowBookDropdown] = useState(false);
 
   const { color, theme } = useSettings();
+  const [isPublic, setIsPublic] = useState(order.isPublic || false);
+  const [shareChurchId, setShareChurchId] = useState(order.churchId || '');
+  const [showPublicUrl, setShowPublicUrl] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [publishLoading, setPublishLoading] = useState(false);
+
+  const user = getCurrentUser();
+  const [userChurches, setUserChurches] = useState<Church[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      getUserChurches(user.uid).then(setUserChurches);
+    }
+  }, [user]);
 
   const selectedBook = selectedBookId ? getBookById(selectedBookId) : undefined;
   const maxChapter = selectedBook ? selectedBook.chapters : 0;
@@ -145,11 +162,56 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
     }
   }, [hymnInput]);
 
-  const handleSave = () => {
-    const updated = { ...order, updatedAt: Date.now() };
+  const handleSave = async () => {
+    const updated: WorshipOrder = {
+      ...order,
+      isPublic,
+      churchId: shareChurchId || undefined,
+      authorId: user?.uid || order.authorId,
+      authorName: user?.displayName || user?.email || order.authorName,
+      updatedAt: Date.now(),
+    };
+    if (user && (isPublic || shareChurchId)) {
+      try {
+        const cloudId = await saveOrderToCloud(updated, user.uid);
+        updated.cloudId = cloudId;
+      } catch (err) {
+        console.error('Cloud save failed:', err);
+      }
+    }
     saveOrder(updated);
     onNavigate(`orden/${orderId}`);
   };
+
+  const handleShareClick = async () => {
+    if (!user) return;
+    if (isPublic && order.cloudId) {
+      setShowPublicUrl(!showPublicUrl);
+      return;
+    }
+    setPublishLoading(true);
+    try {
+      const updated: WorshipOrder = {
+        ...order,
+        isPublic: true,
+        churchId: shareChurchId || undefined,
+        authorId: user.uid,
+        authorName: user.displayName || user.email || '',
+        updatedAt: Date.now(),
+      };
+      const cloudId = await saveOrderToCloud(updated, user.uid);
+      updated.cloudId = cloudId;
+      saveOrder(updated);
+      setOrder(updated);
+      setIsPublic(true);
+      setShowPublicUrl(true);
+    } catch (err) {
+      console.error('Publish error:', err);
+    }
+    setPublishLoading(false);
+  };
+
+  const publicUrl = order.cloudId ? `${window.location.origin}/#orden/${order.cloudId}` : '';
 
   const addSlide = () => {
     if (!addTab) return;
@@ -239,6 +301,87 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
             placeholder="Ej: Culto Dominical"
           />
         </div>
+
+        <div class={styles.metaFields}>
+          <div class={styles.metaRow}>
+            <div class={styles.metaField}>
+              <label class={styles.label}>Fecha</label>
+              <input type="date" class={styles.input}
+                value={order.date || ''}
+                onInput={(e) => setOrder(prev => ({ ...prev, date: (e.target as HTMLInputElement).value || undefined }))} />
+            </div>
+            <div class={styles.metaField}>
+              <label class={styles.label}>Hora inicio</label>
+              <input type="time" class={styles.input}
+                value={order.startTime || ''}
+                onInput={(e) => setOrder(prev => ({ ...prev, startTime: (e.target as HTMLInputElement).value || undefined }))} />
+            </div>
+            <div class={styles.metaField}>
+              <label class={styles.label}>Hora fin <span class={styles.optional}>(opcional)</span></label>
+              <input type="time" class={styles.input}
+                value={order.endTime || ''}
+                onInput={(e) => setOrder(prev => ({ ...prev, endTime: (e.target as HTMLInputElement).value || undefined }))} />
+            </div>
+          </div>
+          <div class={styles.metaField}>
+            <label class={styles.label}>Descripción <span class={styles.optional}>(opcional)</span></label>
+            <textarea class={`${styles.input} ${styles.textarea}`}
+              value={order.description || ''}
+              onInput={(e) => setOrder(prev => ({ ...prev, description: (e.target as HTMLInputElement).value || undefined }))}
+              placeholder="Breve descripción del culto..."
+              rows={2} />
+          </div>
+        </div>
+
+        {user && (
+          <div class={styles.sharingSection}>
+            <div class={styles.sharingHeader}>
+              <label class={styles.label}>Compartir</label>
+              <button class={styles.shareIconBtn} onClick={handleShareClick} disabled={publishLoading}
+                title={isPublic ? 'Ver enlace público' : 'Compartir como público'}>
+                <ShareIcon size={20} />
+                {isPublic && <span class={styles.publicBadge}>Público</span>}
+              </button>
+            </div>
+            {showPublicUrl && publicUrl && (
+              <div class={styles.publicUrlBox}>
+                <input class={styles.publicUrlInput} value={publicUrl} readOnly
+                  onClick={(e) => (e.target as HTMLInputElement).select()} />
+                <button class={styles.copyBtn} onClick={() => {
+                  navigator.clipboard.writeText(publicUrl).then(() => {
+                    setLinkCopied(true);
+                    setTimeout(() => setLinkCopied(false), 2000);
+                  });
+                }}>
+                  {linkCopied ? 'Copiado' : 'Copiar'}
+                </button>
+              </div>
+            )}
+            {userChurches.length > 0 && (
+              <div class={styles.sharingOptions}>
+                <label class={styles.sharingToggle}>
+                  <input type="checkbox" checked={!!shareChurchId}
+                    onChange={() => {
+                      if (shareChurchId) {
+                        setShareChurchId('');
+                      } else if (userChurches.length > 0) {
+                        setShareChurchId(userChurches[0].id);
+                      }
+                    }} />
+                  <span>Compartir en iglesia</span>
+                </label>
+                {!!shareChurchId && (
+                  <select class={`${styles.select} ${styles.sharingSelect}`} value={shareChurchId}
+                    onChange={(e) => setShareChurchId((e.target as HTMLSelectElement).value)}>
+                    {userChurches.map(c => (
+                      <option key={c.id} value={c.id}>{c.name} ({c.id})</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         <div class={styles.slidesSection}>
           {order.slides.map((slide, idx) => (

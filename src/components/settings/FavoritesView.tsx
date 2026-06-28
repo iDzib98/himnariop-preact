@@ -5,20 +5,24 @@ import { fetchHimnos } from '../../services/api';
 import { storage } from '../../services/storage';
 import { getBookById } from '../../data/books';
 import type { Himno } from '../../types/himno';
-import { StarFilledIcon, DeleteIcon, BibleIcon, ChevronLeftIcon } from '../ui/Icons';
+import { StarFilledIcon, DeleteIcon, BibleIcon, SearchIcon, CloseIcon } from '../ui/Icons';
 import styles from './FavoritesView.module.css';
 
 type Filter = 'himnos' | 'biblia' | 'todos';
 
 interface FavoritesViewProps {
   onNavigate: (path: string) => void;
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
 }
 
-export function FavoritesView({ onNavigate }: FavoritesViewProps) {
+export function FavoritesView({ onNavigate, searchQuery, onSearchChange }: FavoritesViewProps) {
   const { favorites, clearFavorites } = useFavorites();
   const { color, theme } = useSettings();
   const [himnos, setHimnos] = useState<Himno[]>([]);
   const [filter, setFilter] = useState<Filter>('todos');
+
+  const normalizedQuery = searchQuery.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
   const bibleFavs = useMemo(() => storage.getBibleFavorites(), []);
 
@@ -43,8 +47,20 @@ export function FavoritesView({ onNavigate }: FavoritesViewProps) {
   const showHimnos = filter === 'himnos' || filter === 'todos';
   const showBiblia = filter === 'biblia' || filter === 'todos';
 
-  const hasHimnos = favoriteHimnos.length > 0;
-  const hasBiblia = parsedBibleFavs.length > 0;
+  const filteredFavoriteHimnos = searchQuery
+    ? favoriteHimnos.filter(h =>
+        h.titulo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(normalizedQuery)
+      )
+    : favoriteHimnos;
+
+  const filteredParsedBibleFavs = searchQuery
+    ? parsedBibleFavs.filter(item =>
+        item.book!.nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(normalizedQuery)
+      )
+    : parsedBibleFavs;
+
+  const hasHimnos = filteredFavoriteHimnos.length > 0;
+  const hasBiblia = filteredParsedBibleFavs.length > 0;
   const isEmpty = !(showHimnos && hasHimnos) && !(showBiblia && hasBiblia);
 
   const handleClear = () => {
@@ -58,13 +74,31 @@ export function FavoritesView({ onNavigate }: FavoritesViewProps) {
     }
   };
 
+  const handleFavNavigate = (path: string) => {
+    onSearchChange('');
+    onNavigate(path);
+  };
+
   return (
     <div class={styles.container} data-theme={theme}>
-      <header class={`${styles.header} ${styles.mobilePageHeader} ${styles[color]}`}>
-        <button class={styles.backBtn} onClick={() => onNavigate('home')}>
-          <ChevronLeftIcon size={24} />
-        </button>
-        <h1 class={styles.headerTitle}>Favoritos</h1>
+      <header class={`${styles.mobileSearchHeader} ${styles[color]}`}>
+        <form class={styles.searchForm} onSubmit={(e) => { e.preventDefault(); }}>
+          <div class={styles.searchWrapper}>
+            <SearchIcon size={24} className={styles.searchIcon} />
+            <input
+              type="text"
+              placeholder="Buscar favorito..."
+              value={searchQuery}
+              onInput={(e) => onSearchChange((e.target as HTMLInputElement).value)}
+              class={styles.searchInput}
+            />
+            {searchQuery && (
+              <button type="button" class={styles.clearBtn} onClick={() => onSearchChange('')}>
+                <CloseIcon size={20} />
+              </button>
+            )}
+          </div>
+        </form>
       </header>
 
       <main class={styles.main}>
@@ -89,7 +123,11 @@ export function FavoritesView({ onNavigate }: FavoritesViewProps) {
           </button>
         </div>
 
-        {isEmpty ? (
+        {searchQuery && !hasHimnos && !hasBiblia ? (
+          <div class={styles.empty}>
+            <p>No se encontraron favoritos para "<strong>{searchQuery}</strong>"</p>
+          </div>
+        ) : isEmpty ? (
           <div class={styles.empty}>
             <StarFilledIcon size={48} className={styles.emptyIcon} />
             {filter === 'himnos' && <p>No tienes himnos favoritos aún.</p>}
@@ -109,11 +147,11 @@ export function FavoritesView({ onNavigate }: FavoritesViewProps) {
               <section>
                 {showBiblia && <h2 class={styles.sectionTitle}>Himnos</h2>}
                 <ul class={styles.list}>
-                  {favoriteHimnos.map(himno => (
+                  {filteredFavoriteHimnos.map(himno => (
                     <li key={himno.numero} class={styles.item}>
                       <button
                         class={`${styles.itemBtn} ${styles[color]}`}
-                        onClick={() => onNavigate(String(himno.numero))}
+                        onClick={() => handleFavNavigate(String(himno.numero))}
                       >
                         <span class={styles.number}>{himno.numero}</span>
                         <span class={styles.itemTitle}>{himno.titulo}</span>
@@ -128,11 +166,11 @@ export function FavoritesView({ onNavigate }: FavoritesViewProps) {
               <section>
                 {showHimnos && <h2 class={styles.sectionTitle}>Biblia</h2>}
                 <ul class={styles.list}>
-                  {parsedBibleFavs.map(({ key, book, bookId, chapter }) => (
+                  {filteredParsedBibleFavs.map(({ key, book, bookId, chapter }) => (
                     <li key={key} class={styles.item}>
                       <button
                         class={`${styles.itemBtn} ${styles[color]}`}
-                        onClick={() => onNavigate(`biblia/${encodeURIComponent(bookId)}/${chapter}`)}
+                        onClick={() => handleFavNavigate(`biblia/${encodeURIComponent(bookId)}/${chapter}`)}
                       >
                         <BibleIcon size={20} className={styles.bibleIcon} />
                         <span class={styles.itemTitle}>{book!.nombre} {chapter}</span>

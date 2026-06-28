@@ -1,13 +1,38 @@
 import { useState, useEffect } from 'preact/hooks';
-import { getOrder, setReturnTo } from '../../services/ordenStorage';
+import { getOrder, saveOrder, setReturnTo } from '../../services/ordenStorage';
 import type { WorshipOrder, WorshipSlide } from '../../types/orden';
 import { useSettings } from '../../hooks/useSettings';
 import { getBookById } from '../../data/books';
 import { getHimno } from '../../services/api';
 import type { Himno } from '../../types/himno';
-import { ChevronLeftIcon, TvIcon, PrintIcon, PersonIcon, StandingIcon, GroupIcon, SittingIcon } from '../ui/Icons';
+import { getFirebaseDb } from '../../services/firebase';
+import { getCurrentUser } from '../../services/authService';
+import { getChurch, getLocalChurchIds } from '../../services/churchService';
+import { doc, getDoc } from 'firebase/firestore';
+import { ChevronLeftIcon, TvIcon, PrintIcon, PersonIcon, StandingIcon, GroupIcon, SittingIcon, ShareIcon } from '../ui/Icons';
 import { WorshipOrderTv } from './WorshipOrderTv';
+import { ShareDialog } from './ShareDialog';
 import styles from './WorshipOrderView.module.css';
+
+function fromFirestoreDoc(id: string, data: any): WorshipOrder {
+  const fallback = data.sharing || 'private';
+  return {
+    id: data.id || id,
+    title: data.title || '',
+    slides: (data.slides || []) as WorshipSlide[],
+    authorId: data.authorId || '',
+    authorName: data.authorName || '',
+    isPublic: data.isPublic === true || fallback === 'public',
+    churchId: data.churchId || (fallback === 'church' ? data.churchId : undefined) || undefined,
+    date: data.date || undefined,
+    startTime: data.startTime || undefined,
+    endTime: data.endTime || undefined,
+    description: data.description || undefined,
+    createdAt: data.createdAt?.toMillis?.() || Date.now(),
+    updatedAt: data.updatedAt?.toMillis?.() || Date.now(),
+    cloudId: id,
+  };
+}
 
 interface Props {
   orderId: string;
@@ -15,14 +40,59 @@ interface Props {
 }
 
 export function WorshipOrderView({ orderId, onNavigate }: Props) {
-  const [order, setOrder] = useState<WorshipOrder | undefined>(getOrder(orderId));
+  const [order, setOrder] = useState<WorshipOrder | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+  const [accessError, setAccessError] = useState('');
   const [hymnCache, setHymnCache] = useState<Record<number, Himno>>({});
   const [showTv, setShowTv] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const { color, theme } = useSettings();
 
   useEffect(() => {
-    setOrder(getOrder(orderId));
+    loadOrder();
   }, [orderId]);
+
+  async function loadOrder() {
+    setLoading(true);
+    setAccessError('');
+    const local = getOrder(orderId);
+    const user = getCurrentUser();
+    const cloudId = local?.cloudId || orderId;
+
+    if (local && !cloudId) {
+      setOrder(local);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const db = getFirebaseDb();
+      const snap = await getDoc(doc(db, 'ordenes', cloudId));
+      if (snap.exists()) {
+        const cloud = fromFirestoreDoc(snap.id, snap.data());
+        const isChurchMember = cloud.churchId && (
+          getLocalChurchIds().includes(cloud.churchId) ||
+          (user && await getChurch(cloud.churchId).then(c => c?.memberIds.includes(user.uid)).catch(() => false))
+        );
+        if (!cloud.isPublic && cloud.authorId !== user?.uid && !isChurchMember) {
+          setAccessError('No tienes acceso a esta orden de culto');
+          setLoading(false);
+          return;
+        }
+        saveOrder(cloud);
+        setOrder(cloud);
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.error('Failed to fetch order from cloud:', err);
+    }
+
+    if (local) {
+      setOrder(local);
+    }
+    setLoading(false);
+  }
 
   useEffect(() => {
     if (!order) return;
@@ -41,6 +111,29 @@ export function WorshipOrderView({ orderId, onNavigate }: Props) {
     setReturnTo(window.location.hash);
     window.location.hash = path;
   };
+
+  if (loading) {
+    return (
+      <div class={styles.container} data-theme={theme}>
+        <div class={styles.empty}>
+          <p>Cargando orden de culto...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (accessError) {
+    return (
+      <div class={styles.container} data-theme={theme}>
+        <div class={styles.empty}>
+          <p>{accessError}</p>
+          <button class={`${styles.navBtn} ${styles[color]}`} onClick={() => onNavigate('orden')}>
+            Volver
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -69,12 +162,22 @@ export function WorshipOrderView({ orderId, onNavigate }: Props) {
 
   return (
     <div class={styles.container} data-theme={theme}>
+      {showShare && order && (
+        <ShareDialog
+          order={order}
+          onClose={() => setShowShare(false)}
+          onShared={(updated) => setOrder(updated)}
+        />
+      )}
       <header class={`${styles.header} ${styles[color]}`}>
         <button class={styles.backBtn} onClick={() => onNavigate('orden')}>
           <ChevronLeftIcon size={24} />
         </button>
         <h1 class={styles.headerTitle}>{order.title}</h1>
         <div class={styles.headerActions}>
+          <button class={styles.headerBtn} onClick={() => setShowShare(true)} title="Compartir">
+            <ShareIcon size={20} />
+          </button>
           <button class={styles.headerBtn} onClick={() => setShowTv(true)} title="Proyectar">
             <TvIcon size={22} />
           </button>

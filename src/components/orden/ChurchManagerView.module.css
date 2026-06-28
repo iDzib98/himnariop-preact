@@ -1,0 +1,447 @@
+.container {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--on-background);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--background);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: var(--on-background);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.headerTitle {
+  font-size: 1.2rem;
+  flex: 1;
+  margin: 0;
+}
+
+.main {
+  padding: 16px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .main {
+    max-width: 900px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main {
+    max-width: 1100px;
+    padding: 24px 32px;
+  }
+
+  .churchList {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+.loginPrompt {
+  text-align: center;
+  padding: 40px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.hint {
+  opacity: 0.6;
+  font-size: 0.9rem;
+}
+
+.googleBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.secondaryBtn {
+  background: none;
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--on-background);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.actionBtn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.section {
+  margin-top: 16px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-color);
+}
+
+.input {
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--on-background);
+  font-size: 0.95rem;
+}
+
+.submitBtn {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.cancelBtn {
+  padding: 8px;
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--on-background);
+}
+
+.msg {
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
+.errorMsg {
+  background: #f44336;
+  color: #fff;
+}
+
+.successMsg {
+  background: #4caf50;
+  color: #fff;
+}
+
+.loading {
+  text-align: center;
+  opacity: 0.6;
+}
+
+.empty {
+  text-align: center;
+  padding: 20px;
+  opacity: 0.6;
+}
+
+.churchList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.churchCard {
+  padding: 16px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+.churchInfo h3 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+}
+
+.churchCode {
+  font-size: 0.9rem;
+  margin: 0 0 4px;
+}
+
+.churchDesc {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin: 0 0 4px;
+}
+
+.churchMeta {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  margin: 0;
+}
+
+.churchActions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.shareBtn {
+  background: none;
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--on-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shareBtn:hover {
+  background: var(--hover-bg);
+}
+
+.manageBtn {
+  background: none;
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--on-background);
+  font-size: 0.85rem;
+}
+
+.leaveBtn {
+  background: none;
+  border: 1px solid #f44336;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #f44336;
+  font-size: 0.85rem;
+}
+
+.managePanel {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.managePanel h3 {
+  margin: 0 0 12px;
+}
+
+.manageSection {
+  margin-bottom: 12px;
+}
+
+.manageSection h4 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.adminList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.adminItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.85rem;
+}
+
+.removeBtn {
+  background: none;
+  border: 1px solid #f44336;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #f44336;
+  font-size: 0.8rem;
+}
+
+/* Share dialog */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  background: var(--background);
+  color: var(--on-background);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 380px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dialogHeader h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--on-background);
+  display: flex;
+}
+
+.dialogBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.qrContainer {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.qrImage {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+}
+
+.shareLinkBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.shareLinkInput {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--on-background);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.shareActions {
+  display: flex;
+  gap: 6px;
+}
+
+.shareActionBtn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #fff;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.copyBtn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #fff;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.shareHint {
+  font-size: 0.85rem;
+  opacity: 0.6;
+  text-align: center;
+  margin: 0;
+}
+
+/* Color themes */
+.black { background: #000; color: #fff; }
+.red { background: #f44336; }
+.pink { background: #e91e63; }
+.purple { background: #9c27b0; }
+.deep-purple { background: #673ab7; }
+.indigo { background: #3f51b5; }
+.blue { background: #2196f3; }
+.light-blue { background: #03a9f4; }
+.cyan { background: #00bcd4; }
+.teal { background: #009688; }
+.green { background: #4caf50; }
+.light-green { background: #8bc34a; }
+.lime { background: #cddc39; }
+.yellow { background: #ffeb3b; }
+.amber { background: #ffc107; }
+.orange { background: #ff9800; }
+.deep-orange { background: #ff5722; }
+.brown { background: #795548; }
+.grey { background: #9e9e9e; }
+.blue-grey { background: #607d8b; }

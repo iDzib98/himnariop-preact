@@ -50,8 +50,10 @@ export function useHashRoute() {
   const bibleStartVerse = section === 'biblia' && parts.length >= 5 ? parseInt(parts[3], 10) : undefined;
   const bibleEndVerse = section === 'biblia' && parts.length >= 5 ? parseInt(parts[4], 10) : undefined;
 
-  const ordenId = section === 'orden' && parts.length >= 2 ? parts[1] : undefined;
-  const ordenEditing = section === 'orden' && parts.length >= 3 && parts[2] === 'editar';
+  const ordenId = section === 'orden' && parts.length >= 2 && parts[1] !== 'iglesias' ? parts[1] : undefined;
+  const ordenEditing = section === 'orden' && !!ordenId && parts.length >= 3 && parts[2] === 'editar';
+  const showIglesias = section === 'orden' && parts.length >= 2 && parts[1] === 'iglesias';
+  const joinChurchCode = section === 'orden' && showIglesias && parts.length >= 4 && parts[2] === 'unirse' ? parts[3] : undefined;
 
   return {
     route,
@@ -65,5 +67,7 @@ export function useHashRoute() {
     bibleEndVerse,
     ordenId,
     ordenEditing,
+    showIglesias,
+    joinChurchCode,
   };
 }
