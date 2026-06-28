@@ -10,11 +10,15 @@ import { TabBar } from './components/ui/TabBar';
 import { FavoritesView } from './components/settings/FavoritesView';
 import { SettingsView } from './components/settings/SettingsView';
 import { InfoView } from './components/settings/InfoView';
+import { WorshipOrderHome } from './components/orden/WorshipOrderHome';
+import { WorshipOrderView } from './components/orden/WorshipOrderView';
+import { WorshipOrderEditor } from './components/orden/WorshipOrderEditor';
+import { getReturnTo, setReturnTo } from './services/ordenStorage';
 import './styles/reset.css';
 import './styles/variables.css';
 
 export function App() {
-  const { navigate, section, hymnNumber, bibleBook, bibleChapter } = useHashRoute();
+  const { navigate, section, hymnNumber, bibleBook, bibleChapter, bibleStartVerse, bibleEndVerse, ordenId, ordenEditing } = useHashRoute();
   const { theme, fontFamily, fontSize, color } = useSettings();
 
   const [himnarioSearch, setHimnarioSearch] = useState('');
@@ -46,10 +50,12 @@ export function App() {
   }, [theme, fontFamily, fontSize]);
 
   const handleNavigate = (path: string) => {
+    setReturnTo(null);
     navigate(path);
   };
 
   const handleNavigateNumber = (numero: number) => {
+    setReturnTo(null);
     navigate(String(numero));
   };
 
@@ -73,6 +79,8 @@ export function App() {
     return { showSearch: false };
   };
 
+  const returnTo = getReturnTo();
+
   const renderContent = () => {
     switch (section) {
       case 'biblia':
@@ -82,6 +90,9 @@ export function App() {
               bookId={bibleBook}
               chapter={bibleChapter}
               onNavigate={handleNavigate}
+              returnTo={returnTo || undefined}
+              startVerse={bibleStartVerse}
+              endVerse={bibleEndVerse}
             />
           );
         }
@@ -92,6 +103,15 @@ export function App() {
             onNavigate={handleNavigate}
           />
         );
+
+      case 'orden':
+        if (ordenEditing && ordenId) {
+          return <WorshipOrderEditor orderId={ordenId} onNavigate={handleNavigate} />;
+        }
+        if (ordenId) {
+          return <WorshipOrderView orderId={ordenId} onNavigate={handleNavigate} />;
+        }
+        return <WorshipOrderHome onNavigate={handleNavigate} />;
 
       case 'favoritos':
         return <FavoritesView onNavigate={handleNavigate} />;
@@ -109,6 +129,7 @@ export function App() {
             <HymnView
               numero={hymnNumber}
               onNavigateHome={() => handleNavigate('home')}
+              returnTo={returnTo || undefined}
             />
           );
         }
@@ -117,13 +138,12 @@ export function App() {
             searchQuery={himnarioSearch}
             onSearchChange={setHimnarioSearch}
             onNavigate={handleNavigateNumber}
-            onOpenFavorites={() => handleNavigate('favoritos')}
           />
         );
     }
   };
 
-  const hideNav = (section === 'himnario' && hymnNumber !== null) || (section === 'biblia' && bibleBook && bibleChapter);
+  const hideNav = (section === 'himnario' && hymnNumber !== null) || (section === 'biblia' && bibleBook && bibleChapter) || (section === 'orden' && !!ordenId);
 
   return (
     <>

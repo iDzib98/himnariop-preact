@@ -284,6 +284,28 @@ export function AudioIcon({ size = 24, color = 'currentColor', className }: Icon
   );
 }
 
+export function OrderIcon({ size = 24, color = 'currentColor', className }: IconProps): JSX.Element {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" class={className}>
+      <line x1="8" y1="6" x2="21" y2="6" />
+      <line x1="8" y1="12" x2="21" y2="12" />
+      <line x1="8" y1="18" x2="21" y2="18" />
+      <line x1="3" y1="6" x2="3.01" y2="6" />
+      <line x1="3" y1="12" x2="3.01" y2="12" />
+      <line x1="3" y1="18" x2="3.01" y2="18" />
+    </svg>
+  );
+}
+
+export function PlusIcon({ size = 24, color = 'currentColor', className }: IconProps): JSX.Element {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" class={className}>
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+}
+
 export function PdfIcon({ size = 24, color = 'currentColor', className }: IconProps): JSX.Element {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" class={className}>
@@ -292,6 +314,50 @@ export function PdfIcon({ size = 24, color = 'currentColor', className }: IconPr
       <line x1="16" y1="13" x2="8" y2="13" />
       <line x1="16" y1="17" x2="8" y2="17" />
       <polyline points="10 9 9 9 8 9" />
+    </svg>
+  );
+}
+
+export function PersonIcon({ size = 24, color = 'currentColor', className }: IconProps): JSX.Element {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" class={className} xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="7" r="4" stroke={color} stroke-width="2" fill="none" />
+      <path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2" stroke={color} stroke-width="2" fill="none" stroke-linecap="round" />
+    </svg>
+  );
+}
+
+export function StandingIcon({ size = 24, color = 'currentColor', className }: IconProps): JSX.Element {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" class={className} xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="4" r="3" stroke={color} stroke-width="2" fill="none" />
+      <line x1="12" y1="7" x2="12" y2="15" stroke={color} stroke-width="2" stroke-linecap="round" />
+      <line x1="5" y1="10" x2="19" y2="10" stroke={color} stroke-width="2" stroke-linecap="round" />
+      <line x1="12" y1="15" x2="7" y2="21" stroke={color} stroke-width="2" stroke-linecap="round" />
+      <line x1="12" y1="15" x2="17" y2="21" stroke={color} stroke-width="2" stroke-linecap="round" />
+    </svg>
+  );
+}
+
+export function GroupIcon({ size = 24, color = 'currentColor', className }: IconProps): JSX.Element {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" class={className} xmlns="http://www.w3.org/2000/svg">
+      <circle cx="9" cy="6" r="3.5" stroke={color} stroke-width="2" fill="none" />
+      <circle cx="17" cy="6" r="3.5" stroke={color} stroke-width="2" fill="none" />
+      <path d="M2 21v-1.5a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1.5" stroke={color} stroke-width="2" fill="none" stroke-linecap="round" />
+      <path d="M16 14.5a5 5 0 0 1 5 5V21" stroke={color} stroke-width="2" fill="none" stroke-linecap="round" />
+    </svg>
+  );
+}
+
+export function SittingIcon({ size = 24, color = 'currentColor', className }: IconProps): JSX.Element {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" class={className} xmlns="http://www.w3.org/2000/svg">
+      <circle cx="15" cy="4" r="2.5" stroke={color} stroke-width="2" fill="none" />
+      <line x1="15" y1="6.5" x2="15" y2="11" stroke={color} stroke-width="2" stroke-linecap="round" />
+      <line x1="15" y1="11" x2="19" y2="11" stroke={color} stroke-width="2" stroke-linecap="round" />
+      <line x1="19" y1="11" x2="19" y2="17" stroke={color} stroke-width="2" stroke-linecap="round" />
+      <line x1="7" y1="11" x2="20" y2="11" stroke={color} stroke-width="2" stroke-linecap="round" />
     </svg>
   );
 }

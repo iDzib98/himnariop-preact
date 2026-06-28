@@ -12,9 +12,12 @@ interface BibleChapterProps {
   bookId: string;
   chapter: number;
   onNavigate: (path: string) => void;
+  returnTo?: string;
+  startVerse?: number;
+  endVerse?: number;
 }
 
-export function BibleChapter({ bookId, chapter, onNavigate }: BibleChapterProps) {
+export function BibleChapter({ bookId, chapter, onNavigate, returnTo, startVerse, endVerse }: BibleChapterProps) {
   const [verses, setVerses] = useState<BibleVerse[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,14 +60,17 @@ export function BibleChapter({ bookId, chapter, onNavigate }: BibleChapterProps)
           seen.add(key);
           return true;
         });
-        setVerses(unique);
+        let result = unique;
+        if (startVerse !== undefined) result = result.filter(v => parseInt(v.verse, 10) >= startVerse);
+        if (endVerse !== undefined) result = result.filter(v => parseInt(v.verse, 10) <= endVerse);
+        setVerses(result);
         setLoading(false);
       })
       .catch(err => {
         setError(err.message || 'Error al cargar el capítulo');
         setLoading(false);
       });
-  }, [bookId, chapter]);
+  }, [bookId, chapter, startVerse, endVerse]);
 
   const handleShare = async () => {
     if (!verses || !book) return;
@@ -87,13 +93,15 @@ export function BibleChapter({ bookId, chapter, onNavigate }: BibleChapterProps)
       <div class={styles.container} data-theme={theme}>
         <div class={styles.error}>
           <p>Libro no encontrado</p>
-          <button class={`${styles.navBtn} ${styles[color]}`} onClick={() => onNavigate('biblia')}>
+          <button class={`${styles.navBtn} ${styles[color]}`} onClick={() => returnTo ? (window.location.hash = returnTo) : onNavigate('biblia')}>
             Volver a la Biblia
           </button>
         </div>
       </div>
     );
   }
+
+  const isReading = startVerse !== undefined || endVerse !== undefined;
 
   const prevChapter = chapter > 1 ? chapter - 1 : null;
   const nextChapter = chapter < book.chapters ? chapter + 1 : null;
@@ -111,20 +119,20 @@ export function BibleChapter({ bookId, chapter, onNavigate }: BibleChapterProps)
     <div class={styles.container} data-theme={theme}>
       <header class={`${styles.header} ${styles[color]}`}>
         <div class={styles.headerLeft}>
-          <button class={styles.iconBtn} onClick={() => onNavigate('biblia')} title="Biblia">
+          <button class={styles.iconBtn} onClick={() => returnTo ? (window.location.hash = returnTo) : onNavigate('biblia')} title="Biblia">
             <BibleIcon size={24} />
           </button>
         </div>
         <div class={styles.headerCenter}>
           <button
             class={styles.navBtn}
-            disabled={!prevChapter}
+            disabled={!prevChapter || isReading}
             onClick={() => onNavigate(`biblia/${encodeURIComponent(bookId)}/${prevChapter}`)}
           >
             <ChevronLeftIcon size={28} />
           </button>
           <div class={styles.chapterSelector}>
-            <button class={styles.chapterBtn} onClick={() => setShowChapterPicker(!showChapterPicker)}>
+            <button class={styles.chapterBtn} disabled={isReading} onClick={() => setShowChapterPicker(!showChapterPicker)}>
               <span>{chapter}</span>
               <ChevronDownIcon size={16} className={styles.chapterChevron} />
             </button>
@@ -144,7 +152,7 @@ export function BibleChapter({ bookId, chapter, onNavigate }: BibleChapterProps)
           </div>
           <button
             class={styles.navBtn}
-            disabled={!nextChapter}
+            disabled={!nextChapter || isReading}
             onClick={() => onNavigate(`biblia/${encodeURIComponent(bookId)}/${nextChapter}`)}
           >
             <ChevronRightIcon size={28} />
@@ -180,7 +188,7 @@ export function BibleChapter({ bookId, chapter, onNavigate }: BibleChapterProps)
         {verses && (
           <div class={styles.verses}>
             <h1 class={styles.chapterHeading}>
-              {book.nombre} {chapter}
+              {book.nombre} {chapter}{isReading ? `:${startVerse || 1}${endVerse && endVerse !== startVerse ? `-${endVerse}` : ''}` : ''}
             </h1>
 
             <div class={styles.actionButtons} data-print-hide>
@@ -204,7 +212,7 @@ export function BibleChapter({ bookId, chapter, onNavigate }: BibleChapterProps)
           </div>
         )}
 
-        {verses && (
+        {verses && !isReading && (
           <div class={`${styles.chapterFooter} ${styles[color]}`}>
             {prevChapter && (
               <button class={styles.footerBtn} onClick={() => onNavigate(`biblia/${encodeURIComponent(bookId)}/${prevChapter}`)}>

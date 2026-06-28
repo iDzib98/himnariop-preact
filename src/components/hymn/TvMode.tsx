@@ -12,24 +12,34 @@ interface TvModeProps {
 }
 
 const SLIDE_WIDTH = 800;
-const SLIDE_HEIGHT = 600;
+const UI_HIDE_DELAY = 1000;
 
 export function TvMode({ himno, onClose, color, theme }: TvModeProps) {
   const [slide, setSlide] = useState(0);
   const [scale, setScale] = useState(1);
+  const [uiVisible, setUiVisible] = useState(true);
+  const uiTimer = useRef<number>(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
   const { isPlaying, play, pause } = useAudio(himno.numero);
 
-  const totalSlides = 2 + himno.versos.length; // title + intro + verses + authors
+  const totalSlides = 2 + himno.versos.length;
+
+  const showUi = useCallback(() => {
+    setUiVisible(true);
+    window.clearTimeout(uiTimer.current);
+    uiTimer.current = window.setTimeout(() => setUiVisible(false), UI_HIDE_DELAY);
+  }, []);
 
   const goNext = useCallback(() => {
-    setSlide(s => (s + 1) % totalSlides);
-  }, [totalSlides]);
+    setSlide(s => Math.min(s + 1, totalSlides - 1));
+    showUi();
+  }, [totalSlides, showUi]);
 
   const goPrev = useCallback(() => {
-    setSlide(s => (s - 1 + totalSlides) % totalSlides);
-  }, [totalSlides]);
+    setSlide(s => Math.max(s - 1, 0));
+    showUi();
+  }, [showUi]);
 
   const exitFullscreen = useCallback(() => {
     if (document.fullscreenElement) {
@@ -64,17 +74,27 @@ export function TvMode({ himno, onClose, color, theme }: TvModeProps) {
 
   useEffect(() => {
     const calculateScale = () => {
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const scaleX = viewportWidth / SLIDE_WIDTH;
-      const scaleY = viewportHeight / SLIDE_HEIGHT;
-      setScale(Math.min(scaleX, scaleY));
+      const scaleX = window.innerWidth / SLIDE_WIDTH;
+      setScale(window.innerHeight > window.innerWidth ? Math.max(1, scaleX) : scaleX);
     };
 
     calculateScale();
     window.addEventListener('resize', calculateScale);
     return () => window.removeEventListener('resize', calculateScale);
   }, []);
+
+  useEffect(() => {
+    const handleMouseMove = () => showUi();
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.clearTimeout(uiTimer.current);
+    };
+  }, [showUi]);
+
+  useEffect(() => {
+    showUi();
+  }, [slide, showUi]);
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -99,6 +119,7 @@ export function TvMode({ himno, onClose, color, theme }: TvModeProps) {
         case 'ArrowRight':
         case 'ArrowDown':
         case ' ':
+          e.preventDefault();
           goNext();
           break;
         case 'ArrowLeft':
@@ -169,14 +190,17 @@ export function TvMode({ himno, onClose, color, theme }: TvModeProps) {
     }
   };
 
-  const themeClass = theme === 'light' ? styles.light : theme === 'sepia' ? styles.sepia : theme === 'oled' ? styles.oled : '';
+  const uiClass = uiVisible ? '' : styles.hidden;
 
   return (
-    <div class={`${styles.container} ${themeClass}`}>
-      <header class={`${styles.header} ${styles.visible}`}>
-        <button class={styles.exitBtn} onClick={exitFullscreen} title="Salir (Esc)">
-          <CloseIcon size={24} />
+    <div class={styles.container} data-theme={theme} onContextMenu={(e) => e.preventDefault()}>
+      <div class={`${styles.topLeft} ${uiClass}`}>
+        <button class={styles.exitBtn} onClick={(e) => { e.stopPropagation(); exitFullscreen(); }} title="Salir (Esc)">
+          <CloseIcon size={22} />
         </button>
+      </div>
+
+      <div class={`${styles.topRight} ${uiClass}`}>
         <button
           class={styles.playBtn}
           onClick={(e) => {
@@ -185,13 +209,15 @@ export function TvMode({ himno, onClose, color, theme }: TvModeProps) {
           }}
           title={isPlaying ? 'Pausar' : 'Reproducir'}
         >
-          {isPlaying ? <PauseIcon size={28} /> : <PlayIcon size={28} />}
+          {isPlaying ? <PauseIcon size={22} /> : <PlayIcon size={22} />}
         </button>
-      </header>
+      </div>
 
       <main
         class={styles.main}
         onClick={goNext}
+        onMouseUp={(e) => { if (e.button === 2) goPrev(); }}
+        onWheel={(e) => { if (e.deltaY > 0) goNext(); else goPrev(); }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -204,26 +230,31 @@ export function TvMode({ himno, onClose, color, theme }: TvModeProps) {
         </div>
       </main>
 
-      <footer class={`${styles.footer} ${styles.visible}`}>
-        <button class={styles.arrowBtn} onClick={(e) => { e.stopPropagation(); goPrev(); }} title="Anterior">
-          <ChevronLeftIcon size={24} />
+      <div class={`${styles.bottomCenter} ${uiClass}`}>
+        <button class={styles.arrowBtn} onClick={(e) => { e.stopPropagation(); goPrev(); }} disabled={slide <= 0} title="Anterior">
+          <ChevronLeftIcon size={22} />
         </button>
-        <div class={styles.progress}>
-          {Array.from({ length: totalSlides }).map((_, i) => (
-            <div
-              key={i}
-              class={`${styles.dot} ${i === slide ? styles.active : ''}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSlide(i);
-              }}
-            />
-          ))}
-        </div>
-        <button class={styles.arrowBtn} onClick={(e) => { e.stopPropagation(); goNext(); }} title="Siguiente">
-          <ChevronRightIcon size={24} />
+        {totalSlides > 20 ? (
+          <span class={styles.slideCounter}>{slide + 1} / {totalSlides}</span>
+        ) : (
+          <div class={styles.progress}>
+            {Array.from({ length: totalSlides }).map((_, i) => (
+              <div
+                key={i}
+                class={`${styles.dot} ${i === slide ? styles.activeDot : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSlide(i);
+                  showUi();
+                }}
+              />
+            ))}
+          </div>
+        )}
+        <button class={styles.arrowBtn} onClick={(e) => { e.stopPropagation(); goNext(); }} disabled={slide >= totalSlides - 1} title="Siguiente">
+          <ChevronRightIcon size={22} />
         </button>
-      </footer>
+      </div>
     </div>
   );
 }

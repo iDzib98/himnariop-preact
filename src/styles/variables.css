@@ -31,9 +31,16 @@
   --surface: #ffffff;
   --on-background: #212121;
   --on-surface: #212121;
+  --on-surface-rgb: 33, 33, 33;
   --on-primary: #ffffff;
   --error: #b00020;
   --success: #4caf50;
+
+  /* Component colors */
+  --border-color: #ddd;
+  --input-bg: #ffffff;
+  --card-header-bg: rgba(0,0,0,0.04);
+  --hover-bg: rgba(0,0,0,0.04);
 
   /* Typography */
   --font-family-sans: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -87,7 +94,12 @@
   --surface: #1e1e1e;
   --on-background: #ffffff;
   --on-surface: #ffffff;
+  --on-surface-rgb: 255, 255, 255;
   --error: #cf6679;
+  --border-color: #444;
+  --input-bg: #2a2a2a;
+  --card-header-bg: rgba(255,255,255,0.05);
+  --hover-bg: rgba(255,255,255,0.04);
   --shadow-1: 0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.7);
   --shadow-2: 0 3px 6px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.7);
 }
@@ -98,7 +110,12 @@
   --surface: #faf6ed;
   --on-background: #5b4636;
   --on-surface: #5b4636;
+  --on-surface-rgb: 91, 70, 54;
   --error: #b00020;
+  --border-color: #d4c9b4;
+  --input-bg: #faf6ed;
+  --card-header-bg: rgba(91,70,54,0.06);
+  --hover-bg: rgba(91,70,54,0.04);
 }
 
 /* OLED mode */
@@ -107,7 +124,12 @@
   --surface: #0a0a0a;
   --on-background: #ffffff;
   --on-surface: #ffffff;
+  --on-surface-rgb: 255, 255, 255;
   --error: #cf6679;
+  --border-color: #222;
+  --input-bg: #0a0a0a;
+  --card-header-bg: rgba(255,255,255,0.04);
+  --hover-bg: rgba(255,255,255,0.03);
   --shadow-1: 0 1px 3px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.9);
   --shadow-2: 0 3px 6px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.9);
 }

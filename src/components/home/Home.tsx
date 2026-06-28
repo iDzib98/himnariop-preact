@@ -11,12 +11,11 @@ interface HomeProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
   onNavigate: (hymnNumber: number) => void;
-  onOpenFavorites: () => void;
 }
 
-export function Home({ searchQuery, onSearchChange, onNavigate, onOpenFavorites }: HomeProps) {
+export function Home({ searchQuery, onSearchChange, onNavigate }: HomeProps) {
   const [himnos, setHimnos] = useState<Himno[] | null>(null);
-  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set([0]));
+  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
   const [showSearchResults, setShowSearchResults] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const { color, theme } = useSettings();
@@ -232,15 +231,6 @@ export function Home({ searchQuery, onSearchChange, onNavigate, onOpenFavorites 
           </div>
         )}
       </main>
-
-      <button
-        class={`${styles.fab} ${styles[color]}`}
-        onClick={onOpenFavorites}
-        title="Ver favoritos"
-      >
-        <StarIcon size={28} />
-        {favorites.length > 0 && <span class={styles.fabBadge}>{favorites.length}</span>}
-      </button>
     </div>
   );
 }

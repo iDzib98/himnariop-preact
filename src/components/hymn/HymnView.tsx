@@ -24,9 +24,10 @@ import styles from './HymnView.module.css';
 interface HymnViewProps {
   numero: number;
   onNavigateHome: () => void;
+  returnTo?: string;
 }
 
-export function HymnView({ numero, onNavigateHome }: HymnViewProps) {
+export function HymnView({ numero, onNavigateHome, returnTo }: HymnViewProps) {
   const [himno, setHimno] = useState<Himno | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +67,7 @@ export function HymnView({ numero, onNavigateHome }: HymnViewProps) {
     return (
       <div class={styles.container} data-theme={theme}>
         <header class={`${styles.header} ${styles[color]}`}>
-          <button class={styles.iconBtn} onClick={onNavigateHome}>
+          <button class={styles.iconBtn} onClick={() => returnTo ? (window.location.hash = returnTo) : onNavigateHome()}>
             <HomeIcon size={24} />
           </button>
         </header>
@@ -103,14 +104,14 @@ export function HymnView({ numero, onNavigateHome }: HymnViewProps) {
     <div class={styles.container} data-theme={theme}>
       <header class={`${styles.header} ${styles[color]}`}>
         <div class={styles.headerLeft}>
-          <button class={styles.iconBtn} onClick={onNavigateHome} title="Inicio">
+          <button class={styles.iconBtn} onClick={() => returnTo ? (window.location.hash = returnTo) : onNavigateHome()} title="Inicio">
             <HomeIcon size={24} />
           </button>
         </div>
         <div class={styles.headerCenter}>
           <button
             class={styles.navBtn}
-            disabled={himno.numero <= 1}
+            disabled={himno.numero <= 1 || !!returnTo}
             onClick={() => window.location.hash = String(himno.numero - 1)}
           >
             <ChevronLeftIcon size={28} />
@@ -118,7 +119,7 @@ export function HymnView({ numero, onNavigateHome }: HymnViewProps) {
           <span class={styles.hymnNumber}>{himno.numero}</span>
           <button
             class={styles.navBtn}
-            disabled={himno.numero >= 706}
+            disabled={himno.numero >= 706 || !!returnTo}
             onClick={() => window.location.hash = String(himno.numero + 1)}
           >
             <ChevronRightIcon size={28} />

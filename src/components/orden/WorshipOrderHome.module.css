@@ -1,0 +1,142 @@
+.container {
+  padding: 80px 16px 80px;
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-top: 72px;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.createBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.empty {
+  text-align: center;
+  padding: 80px 20px;
+  opacity: 0.6;
+}
+
+.empty p {
+  margin: 8px 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.card:hover {
+  opacity: 0.85;
+}
+
+.cardBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.cardMeta {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.cardDate {
+  margin: 2px 0 0;
+  font-size: 12px;
+  opacity: 0.5;
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.editBtn {
+  padding: 6px 14px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.deleteBtn {
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.deleteBtn:hover {
+  opacity: 1;
+}
+
+@media print {
+  .header, .editBtn, .deleteBtn {
+    display: none !important;
+  }
+}
+
+.black { background: var(--black, #333); color: #fff; }
+.red { background: var(--red, #e53935); color: #fff; }
+.pink { background: var(--pink, #d81b60); color: #fff; }
+.purple { background: var(--purple, #8e24aa); color: #fff; }
+.deep-purple { background: var(--deep-purple, #5e35b1); color: #fff; }
+.indigo { background: var(--indigo, #3949ab); color: #fff; }
+.blue { background: var(--blue, #1e88e5); color: #fff; }
+.light-blue { background: var(--light-blue, #039be5); color: #fff; }
+.cyan { background: var(--cyan, #00acc1); color: #fff; }
+.teal { background: var(--teal, #00897b); color: #fff; }
+.green { background: var(--green, #43a047); color: #fff; }
+.light-green { background: var(--light-green, #689f38); color: #fff; }
+.lime { background: var(--lime, #afb42b); color: #fff; }
+.yellow { background: var(--yellow, #fbc02d); color: #222; }
+.amber { background: var(--amber, #ffa000); color: #fff; }
+.orange { background: var(--orange, #f57c00); color: #fff; }
+.deep-orange { background: var(--deep-orange, #e64a19); color: #fff; }
+.brown { background: var(--brown, #5d4037); color: #fff; }
+.grey { background: var(--grey, #616161); color: #fff; }
+.blue-grey { background: var(--blue-grey, #455a64); color: #fff; }

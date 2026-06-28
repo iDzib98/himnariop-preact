@@ -1,0 +1,577 @@
+﻿.wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+  z-index: 9999;
+  user-select: none;
+}
+
+.loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+  z-index: 9999;
+  color: var(--on-background);
+  font-size: 20px;
+}
+
+.stage {
+  width: 800px;
+  height: 600px;
+  position: relative;
+  background: var(--background);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.closeTopLeft {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  transition: opacity 0.3s;
+}
+
+.closeBtn {
+  background: rgba(var(--on-surface-rgb), 1);
+  border: none;
+  color: var(--background);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+.closeBtn:hover {
+  opacity: 1;
+}
+
+.slideContent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+.titleSlide {
+  text-align: center;
+}
+
+.tvTitle {
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.tvSubtitle {
+  font-size: 28px;
+  margin: 0;
+  color: rgba(255,255,255,0.7);
+}
+
+.verseTitleSlide {
+  text-align: center;
+}
+
+.verseTitle {
+  font-size: 36px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: #fff;
+}
+
+.verseCount {
+  font-size: 20px;
+  color: rgba(255,255,255,0.5);
+  margin: 0;
+}
+
+.tvHymnTitle {
+  font-size: 48px;
+  font-weight: 300;
+  margin: 0 0 16px;
+  color: #fff;
+}
+
+.tvHymnSubtitle {
+  font-size: 36px;
+  font-weight: 500;
+  margin: 0 0 24px;
+  color: #fff;
+}
+
+.tvHymnIntro {
+  font-size: 22px;
+  font-style: italic;
+  opacity: 0.9;
+  margin: 0 0 16px;
+  color: rgba(255,255,255,0.85);
+}
+
+.tvHymnRefs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  opacity: 0.7;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tvHymnRefs li {
+  padding: 4px 12px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 16px;
+  color: rgba(255,255,255,0.7);
+}
+
+.verseNameText {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: #fff;
+}
+
+.authorsSlide {
+  text-align: center;
+}
+
+.authorsTitleText {
+  font-size: 36px;
+  font-weight: 500;
+  margin: 0 0 24px;
+  color: #fff;
+}
+
+.authorsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.authorName {
+  font-size: 22px;
+  opacity: 0.8;
+  color: rgba(255,255,255,0.8);
+}
+
+.verseContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.verseHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.verseText {
+  text-align: center;
+}
+
+.verseLine {
+  font-size: 32px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.92);
+  line-height: 1.2;
+}
+
+.verseNum {
+  font-weight: 700;
+}
+
+.rightNav {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px;
+  transition: opacity 0.3s;
+}
+
+.navArrow {
+  background: rgba(var(--on-surface-rgb), 1);
+  border: none;
+  color: var(--background);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  display: flex;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+.navArrow:hover:not(:disabled) {
+  opacity: 1;
+}
+
+.navArrow:disabled {
+  opacity: 0.15;
+  cursor: default;
+}
+
+.rightDots {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.3);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s;
+}
+
+.dot:hover {
+  border-color: rgba(255,255,255,0.7);
+}
+
+.activeDot {
+  background: #fff;
+  border-color: #fff;
+}
+
+.bottomCenter {
+  position: absolute;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px;
+  border-radius: 20px;
+  transition: opacity 0.3s;
+}
+
+.bottomArrow {
+  background: rgba(var(--on-surface-rgb), 1);
+  border: none;
+  color: var(--background);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  display: flex;
+  opacity: 0.85;
+}
+
+.bottomArrow:hover:not(:disabled) {
+  opacity: 1;
+}
+
+.bottomArrow:disabled {
+  opacity: 0.15;
+  cursor: default;
+}
+
+.bottomCounter {
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+  min-width: 48px;
+  text-align: center;
+}
+
+.postureIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.bottomLeft {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 5;
+  transition: opacity 0.3s;
+}
+
+.flowIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.togetherIcons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+.flowItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+.standingBg {
+  border-color: #e65100;
+  color: #e65100;
+}
+
+.sittingBg {
+  border-color: #1565c0;
+  color: #1565c0;
+}
+
+[data-theme="light"] .tvTitle,
+[data-theme="light"] .verseTitle,
+[data-theme="light"] .verseLine,
+[data-theme="light"] .tvHymnTitle,
+[data-theme="light"] .tvHymnSubtitle,
+[data-theme="light"] .verseNameText,
+[data-theme="light"] .authorsTitleText {
+  color: #222;
+}
+
+[data-theme="light"] .tvSubtitle {
+  color: rgba(0,0,0,0.6);
+}
+
+[data-theme="light"] .tvHymnIntro {
+  color: rgba(0,0,0,0.85);
+}
+
+[data-theme="light"] .tvHymnRefs li {
+  border-color: rgba(0,0,0,0.3);
+  color: rgba(0,0,0,0.7);
+}
+
+[data-theme="light"] .authorName {
+  color: rgba(0,0,0,0.8);
+}
+
+[data-theme="light"] .verseCount {
+  color: rgba(0,0,0,0.4);
+}
+
+[data-theme="light"] .dot {
+  border-color: rgba(0,0,0,0.3);
+}
+
+[data-theme="light"] .activeDot {
+  background: #222;
+  border-color: #222;
+}
+
+[data-theme="light"] .bottomCounter {
+  color: rgba(0,0,0,0.6);
+}
+
+[data-theme="sepia"] .tvTitle,
+[data-theme="sepia"] .verseTitle,
+[data-theme="sepia"] .verseLine,
+[data-theme="sepia"] .tvHymnTitle,
+[data-theme="sepia"] .tvHymnSubtitle,
+[data-theme="sepia"] .verseNameText,
+[data-theme="sepia"] .authorsTitleText {
+  color: #5b4636;
+}
+[data-theme="sepia"] .authorsTitleText {
+  color: #5b4636;
+}
+
+[data-theme="sepia"] .tvSubtitle {
+  color: rgba(91,70,54,0.6);
+}
+
+[data-theme="sepia"] .tvHymnIntro {
+  color: rgba(91,70,54,0.85);
+}
+
+[data-theme="sepia"] .tvHymnRefs li {
+  border-color: rgba(91,70,54,0.3);
+  color: rgba(91,70,54,0.7);
+}
+
+[data-theme="sepia"] .authorName {
+  color: rgba(91,70,54,0.8);
+}
+
+[data-theme="sepia"] .verseCount {
+  color: rgba(91,70,54,0.5);
+}
+
+[data-theme="sepia"] .dot {
+  border-color: rgba(91,70,54,0.3);
+}
+
+[data-theme="sepia"] .activeDot {
+  background: #5b4636;
+  border-color: #5b4636;
+}
+
+[data-theme="sepia"] .bottomCounter {
+  color: rgba(91,70,54,0.6);
+}
+
+[data-theme="oled"] .tvTitle,
+[data-theme="oled"] .verseTitle,
+[data-theme="oled"] .verseLine,
+[data-theme="oled"] .tvHymnTitle,
+[data-theme="oled"] .tvHymnSubtitle,
+[data-theme="oled"] .verseNameText,
+[data-theme="oled"] .authorsTitleText {
+  color: #fff;
+}
+
+[data-theme="oled"] .tvSubtitle {
+  color: rgba(255,255,255,0.7);
+}
+
+[data-theme="oled"] .tvHymnIntro {
+  color: rgba(255,255,255,0.85);
+}
+
+[data-theme="oled"] .tvHymnRefs li {
+  border-color: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.7);
+}
+
+[data-theme="oled"] .authorName {
+  color: rgba(255,255,255,0.8);
+}
+
+[data-theme="oled"] .verseCount {
+  color: rgba(255,255,255,0.5);
+}
+
+[data-theme="oled"] .dot {
+  border-color: rgba(255,255,255,0.15);
+}
+
+[data-theme="oled"] .activeDot {
+  background: #fff;
+  border-color: #fff;
+}
+
+[data-theme="oled"] .bottomCounter {
+  color: rgba(255,255,255,0.7);
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Color text classes for verse names */
+.black-text { color: #000000; }
+.indigo-text { color: #7986cb; }
+.red-text { color: #ef5350; }
+.pink-text { color: #f06292; }
+.purple-text { color: #ba68c8; }
+.deep-purple-text { color: #9575cd; }
+.blue-text { color: #64b5f6; }
+.light-blue-text { color: #4fc3f7; }
+.cyan-text { color: #4dd0e1; }
+.teal-text { color: #4db6ac; }
+.green-text { color: #81c784; }
+.light-green-text { color: #aed581; }
+.lime-text { color: #dce775; }
+.yellow-text { color: #fdd835; }
+.amber-text { color: #ffb300; }
+.orange-text { color: #ff8a65; }
+.deep-orange-text { color: #ff8a65; }
+.brown-text { color: #a1887f; }
+.grey-text { color: #bdbdbd; }
+.blue-grey-text { color: #90a4ae; }
+
+[data-theme="light"] .black-text { color: #000000; }
+[data-theme="light"] .indigo-text { color: #3949ab; }
+[data-theme="light"] .red-text { color: #d32f2f; }
+[data-theme="light"] .pink-text { color: #c2185b; }
+[data-theme="light"] .purple-text { color: #7b1fa2; }
+[data-theme="light"] .deep-purple-text { color: #512da8; }
+[data-theme="light"] .blue-text { color: #1976d2; }
+[data-theme="light"] .light-blue-text { color: #0288d1; }
+[data-theme="light"] .cyan-text { color: #00acc1; }
+[data-theme="light"] .teal-text { color: #00796b; }
+[data-theme="light"] .green-text { color: #388e3c; }
+[data-theme="light"] .light-green-text { color: #558b2f; }
+[data-theme="light"] .lime-text { color: #afb42b; }
+[data-theme="light"] .yellow-text { color: #f9a825; }
+[data-theme="light"] .amber-text { color: #ff8f00; }
+[data-theme="light"] .orange-text { color: #f57c00; }
+[data-theme="light"] .deep-orange-text { color: #e64a19; }
+[data-theme="light"] .brown-text { color: #5d4037; }
+[data-theme="light"] .grey-text { color: #616161; }
+[data-theme="light"] .blue-grey-text { color: #455a64; }
+
+[data-theme="sepia"] .black-text { color: #000000; }
+[data-theme="sepia"] .indigo-text { color: #5c6bc0; }
+[data-theme="sepia"] .red-text { color: #c62828; }
+[data-theme="sepia"] .pink-text { color: #ad1457; }
+[data-theme="sepia"] .purple-text { color: #6a1b9a; }
+[data-theme="sepia"] .deep-purple-text { color: #4527a0; }
+[data-theme="sepia"] .blue-text { color: #1565c0; }
+[data-theme="sepia"] .light-blue-text { color: #0277bd; }
+[data-theme="sepia"] .cyan-text { color: #00838f; }
+[data-theme="sepia"] .teal-text { color: #00695c; }
+[data-theme="sepia"] .green-text { color: #2e7d32; }
+[data-theme="sepia"] .light-green-text { color: #558b2f; }
+[data-theme="sepia"] .lime-text { color: #827717; }
+[data-theme="sepia"] .yellow-text { color: #f57f17; }
+[data-theme="sepia"] .amber-text { color: #ff8f00; }
+[data-theme="sepia"] .orange-text { color: #e65100; }
+[data-theme="sepia"] .deep-orange-text { color: #bf360c; }
+[data-theme="sepia"] .brown-text { color: #4e342e; }
+[data-theme="sepia"] .grey-text { color: #424242; }
+[data-theme="sepia"] .blue-grey-text { color: #37474f; }
+
+
+
