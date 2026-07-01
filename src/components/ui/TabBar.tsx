@@ -1,4 +1,4 @@
-import { HomeIcon, BibleIcon, StarIcon, InfoIcon, SettingsIcon, SearchIcon, CloseIcon, ChevronLeftIcon, ChurchIcon } from './Icons';
+import { HomeIcon, BibleIcon, StarIcon, SettingsIcon, SearchIcon, CloseIcon, ChevronLeftIcon, ChurchIcon } from './Icons';
 import type { Section } from '../../hooks/useHashRoute';
 import styles from './TabBar.module.css';
 
@@ -24,14 +24,12 @@ const TABS: TabItem[] = [
   { id: 'biblia', label: 'Biblia', icon: <BibleIcon size={20} />, path: 'biblia' },
   { id: 'orden', label: 'Cultos', icon: <ChurchIcon size={20} />, path: 'orden' },
   { id: 'favoritos', label: 'Favoritos', icon: <StarIcon size={20} />, path: 'favoritos' },
-  { id: 'info', label: 'Info', icon: <InfoIcon size={20} />, path: 'info' },
   { id: 'configuracion', label: 'Configuración', icon: <SettingsIcon size={20} />, path: 'configuracion' },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
   orden: 'Cultos',
   favoritos: 'Favoritos',
-  info: 'Información',
   configuracion: 'Configuración',
 };
 

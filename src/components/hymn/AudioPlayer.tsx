@@ -16,6 +16,7 @@ export function AudioPlayer({ himnoNumero, color, theme }: AudioPlayerProps) {
   const {
     isPlaying,
     isLoaded,
+    audioError,
     currentTime,
     duration,
     speed,
@@ -26,6 +27,8 @@ export function AudioPlayer({ himnoNumero, color, theme }: AudioPlayerProps) {
     setSpeed,
     formatTime
   } = useAudio(himnoNumero);
+
+  if (!isLoaded || audioError) return null;
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 

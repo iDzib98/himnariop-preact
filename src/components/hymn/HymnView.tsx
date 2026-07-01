@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
-import { getHimno } from '../../services/api';
+import { getHimno, getPdfUrl } from '../../services/api';
 import { storage } from '../../services/storage';
 import { cacheService } from '../../services/cache';
 import type { Himno } from '../../types/himno';
@@ -34,6 +34,7 @@ export function HymnView({ numero, onNavigateHome, returnTo }: HymnViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [showPdf, setShowPdf] = useState(false);
   const [showTv, setShowTv] = useState(false);
+  const [pdfAvailable, setPdfAvailable] = useState(false);
   const { color, theme } = useSettings();
   const { isFavorite, toggleFavorite } = useFavorites();
 
@@ -54,6 +55,30 @@ export function HymnView({ numero, onNavigateHome, returnTo }: HymnViewProps) {
         setError('Error al cargar el himno');
       })
       .finally(() => setLoading(false));
+
+    (async () => {
+      const pdfUrl = getPdfUrl(numero);
+      console.log('[HymnView] Checking PDF availability for', pdfUrl);
+      const cacheKeys = ['pdf-cache', 'himnario-audio-pdf-v1'];
+      for (const key of cacheKeys) {
+        try {
+          const cache = await caches.open(key);
+          const cached = await cache.match(pdfUrl);
+          if (cached) {
+            console.log('[HymnView] PDF found in cache:', key);
+            setPdfAvailable(true);
+            return;
+          }
+        } catch {}
+      }
+      try {
+        const r = await fetch(pdfUrl, { method: 'HEAD' });
+        setPdfAvailable(r.ok);
+      } catch {
+        console.log('[HymnView] PDF not available');
+        setPdfAvailable(false);
+      }
+    })();
   }, [numero]);
 
   if (loading) {
@@ -144,9 +169,11 @@ export function HymnView({ numero, onNavigateHome, returnTo }: HymnViewProps) {
           <button class={`${styles.actionBtn} ${styles.deepOrange}`} onClick={() => setShowTv(true)} title="Modo TV">
             <TvIcon size={24} />
           </button>
-          <button class={`${styles.actionBtn} ${styles.green}`} onClick={() => setShowPdf(true)} title="Partitura">
-            <QueueMusicIcon size={24} />
-          </button>
+          {pdfAvailable && (
+            <button class={`${styles.actionBtn} ${styles.green}`} onClick={() => setShowPdf(true)} title="Partitura">
+              <QueueMusicIcon size={24} />
+            </button>
+          )}
           <button class={`${styles.actionBtn} ${styles.blue}`} onClick={() => window.print()} title="Imprimir">
             <PrintIcon size={24} />
           </button>

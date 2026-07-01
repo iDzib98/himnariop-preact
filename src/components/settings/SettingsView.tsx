@@ -3,12 +3,14 @@ import { Slider } from '../ui/Slider';
 import { useSettings } from '../../hooks/useSettings';
 import type { ColorOption, FontSize, FontFamily, Theme } from '../../types/himno';
 import { BIBLE_VERSIONS } from '../../data/bibleVersions';
+import { CHANGELOG, APP_VERSION } from '../../data/changelog';
 import { ChevronLeftIcon, GoogleIcon, ChurchIcon } from '../ui/Icons';
 import { signInWithGoogle, signOut, getCurrentUser, onAuthChange } from '../../services/authService';
 import styles from './SettingsView.module.css';
 
 interface SettingsViewProps {
   onNavigate: (path: string) => void;
+  searchQuery?: string;
 }
 
 const LARGE_FONT_CLASSES = ['x-large', 'xx-large'];
@@ -49,7 +51,19 @@ const FONTS: { value: FontFamily; label: string; font: string }[] = [
   { value: 'monospace', label: 'Mono', font: 'monospace' }
 ];
 
-export function SettingsView({ onNavigate }: SettingsViewProps) {
+const SECTION_LABELS: { key: string; label: string; keywords: string[] }[] = [
+  { key: 'theme', label: 'Tema', keywords: ['tema', 'tema', 'oscuro', 'claro', 'sepia', 'oled'] },
+  { key: 'color', label: 'Color de Énfasis', keywords: ['color', 'énfasis', 'enfasis'] },
+  { key: 'fontSize', label: 'Tamaño de Letra', keywords: ['tamaño', 'letra', 'fuente', 'tamano'] },
+  { key: 'fontFamily', label: 'Tipo de Letra', keywords: ['tipo', 'letra', 'fuente'] },
+  { key: 'account', label: 'Cuenta', keywords: ['cuenta', 'cuenta', 'google', 'sesión', 'sesion'] },
+  { key: 'churches', label: 'Iglesias', keywords: ['iglesia', 'iglesias'] },
+  { key: 'bibleVersion', label: 'Versión de la Biblia', keywords: ['biblia', 'versión', 'version'] },
+  { key: 'appInfo', label: 'Información de la App', keywords: ['información', 'informacion', 'app', 'versión', 'version', 'cambios'] },
+  { key: 'contact', label: 'Contacto y Donaciones', keywords: ['contacto', 'donación', 'donacion', 'donar'] },
+];
+
+export function SettingsView({ onNavigate, searchQuery = '' }: SettingsViewProps) {
   const { color, fontSizeValue, fontFamily, theme, bibleVersion, updateColor, updateFontSize, updateFontFamily, updateTheme, updateBibleVersion } = useSettings();
   const [tempColor, setTempColor] = useState(color);
   const [tempFontSize, setTempFontSize] = useState(fontSizeValue);
@@ -76,6 +90,15 @@ export function SettingsView({ onNavigate }: SettingsViewProps) {
 
     return () => observer.disconnect();
   }, []);
+
+  const query = searchQuery.toLowerCase().trim();
+  const matchesSearch = (key: string) => {
+    if (!query) return true;
+    const section = SECTION_LABELS.find(s => s.key === key);
+    if (!section) return true;
+    if (section.label.toLowerCase().includes(query)) return true;
+    return section.keywords.some(k => k.includes(query));
+  };
 
   const handleColorChange = (newColor: string) => {
     setTempColor(newColor as ColorOption);
@@ -106,123 +129,180 @@ export function SettingsView({ onNavigate }: SettingsViewProps) {
       </header>
 
       <main class={styles.main}>
-        <div class={styles.section}>
-          <h3 class={styles.sectionTitle}>Tema</h3>
-          <div class={styles.themePicker}>
-            {THEMES.map(t => (
-              <button
-                key={t.value}
-                class={`${styles.themeOption} ${theme === t.value ? styles.selected : ''}`}
-                onClick={() => handleThemeChange(t.value)}
-                title={t.label}
-              >
-                <div
-                  class={styles.themePreview}
-                  style={{ backgroundColor: t.bg, borderColor: t.text }}
+        {matchesSearch('theme') && (
+          <div class={styles.section}>
+            <h3 class={styles.sectionTitle}>Tema</h3>
+            <div class={styles.themePicker}>
+              {THEMES.map(t => (
+                <button
+                  key={t.value}
+                  class={`${styles.themeOption} ${theme === t.value ? styles.selected : ''}`}
+                  onClick={() => handleThemeChange(t.value)}
+                  title={t.label}
                 >
-                  <span style={{ color: t.text }}>Aa</span>
-                </div>
-                <span class={styles.themeLabel}>{t.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div class={styles.section}>
-          <h3 class={styles.sectionTitle}>Color de Énfasis</h3>
-          <div class={styles.colorPicker}>
-            {COLORS.map(c => (
-              <button
-                key={c.value}
-                class={`${styles.colorOption} ${tempColor === c.value ? styles.selected : ''}`}
-                onClick={() => handleColorChange(c.value)}
-                title={c.label}
-                style={{ backgroundColor: c.hex }}
-              >
-                {tempColor === c.value && (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" class={styles.checkIcon}>
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div class={styles.section}>
-          <h3 class={styles.sectionTitle}>Tamaño de Letra</h3>
-          <Slider
-            value={tempFontSize}
-            min={0}
-            max={4}
-            step={1}
-            onChange={handleFontSizeChange}
-            showLabels
-            labels={['Chico', '', '', '', 'Grande']}
-          />
-        </div>
-
-        <div class={styles.section}>
-          <h3 class={styles.sectionTitle}>Tipo de Letra</h3>
-          <div class={styles.fontPicker}>
-            {FONTS.map(f => (
-              <button
-                key={f.value}
-                class={`${styles.fontOption} ${fontFamily === f.value ? styles.selected : ''}`}
-                onClick={() => handleFontFamilyChange(f.value)}
-                style={{ fontFamily: f.font }}
-              >
-                <span class={styles.fontPreview}>Aa</span>
-                <span class={styles.fontLabel}>{f.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div class={styles.section}>
-          <h3 class={styles.sectionTitle}>Cuenta</h3>
-          {user ? (
-            <div class={styles.authInfo}>
-              <div class={styles.userInfo}>
-                {user.photoURL && <img src={user.photoURL} class={styles.userAvatar} alt="" />}
-                <div>
-                  <p class={styles.userName}>{user.displayName || 'Usuario'}</p>
-                  <p class={styles.userEmail}>{user.email}</p>
-                </div>
-              </div>
-              <button class={styles.secondaryBtn} onClick={() => signOut()}>
-                Cerrar sesión
-              </button>
+                  <div
+                    class={styles.themePreview}
+                    style={{ backgroundColor: t.bg, borderColor: t.text }}
+                  >
+                    <span style={{ color: t.text }}>Aa</span>
+                  </div>
+                  <span class={styles.themeLabel}>{t.label}</span>
+                </button>
+              ))}
             </div>
-          ) : (
-            <button class={`${styles.googleBtn} ${styles[color]}`} onClick={() => signInWithGoogle()}>
-              <GoogleIcon size={20} /> Iniciar sesión con Google
-            </button>
-          )}
-        </div>
-
-        <div class={styles.section}>
-          <h3 class={styles.sectionTitle}>Iglesias</h3>
-          <button class={styles.churchManageBtn} onClick={() => onNavigate('orden/iglesias')}>
-            <ChurchIcon size={20} /> Administrar iglesias
-          </button>
-        </div>
-
-        <div class={styles.section}>
-          <h3 class={styles.sectionTitle}>Versión de la Biblia</h3>
-          <div class={styles.versionPicker}>
-            {BIBLE_VERSIONS.map(v => (
-              <button
-                key={v.id}
-                class={`${styles.versionBtn} ${bibleVersion === v.id ? styles.versionActive : ''}`}
-                onClick={() => updateBibleVersion(v.id)}
-              >
-                {v.name}
-              </button>
-            ))}
           </div>
-          <p class={styles.versionHint}>Los capítulos descargados se mantienen en la versión anterior.</p>
-        </div>
+        )}
+
+        {matchesSearch('color') && (
+          <div class={styles.section}>
+            <h3 class={styles.sectionTitle}>Color de Énfasis</h3>
+            <div class={styles.colorPicker}>
+              {COLORS.map(c => (
+                <button
+                  key={c.value}
+                  class={`${styles.colorOption} ${tempColor === c.value ? styles.selected : ''}`}
+                  onClick={() => handleColorChange(c.value)}
+                  title={c.label}
+                  style={{ backgroundColor: c.hex }}
+                >
+                  {tempColor === c.value && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" class={styles.checkIcon}>
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {matchesSearch('fontSize') && (
+          <div class={styles.section}>
+            <h3 class={styles.sectionTitle}>Tamaño de Letra</h3>
+            <Slider
+              value={tempFontSize}
+              min={0}
+              max={4}
+              step={1}
+              onChange={handleFontSizeChange}
+              showLabels
+              labels={['Chico', '', '', '', 'Grande']}
+            />
+          </div>
+        )}
+
+        {matchesSearch('fontFamily') && (
+          <div class={styles.section}>
+            <h3 class={styles.sectionTitle}>Tipo de Letra</h3>
+            <div class={styles.fontPicker}>
+              {FONTS.map(f => (
+                <button
+                  key={f.value}
+                  class={`${styles.fontOption} ${fontFamily === f.value ? styles.selected : ''}`}
+                  onClick={() => handleFontFamilyChange(f.value)}
+                  style={{ fontFamily: f.font }}
+                >
+                  <span class={styles.fontPreview}>Aa</span>
+                  <span class={styles.fontLabel}>{f.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {matchesSearch('account') && (
+          <div class={styles.section}>
+            <h3 class={styles.sectionTitle}>Cuenta</h3>
+            {user ? (
+              <div class={styles.authInfo}>
+                <div class={styles.userInfo}>
+                  {user.photoURL && <img src={user.photoURL} class={styles.userAvatar} alt="" />}
+                  <div>
+                    <p class={styles.userName}>{user.displayName || 'Usuario'}</p>
+                    <p class={styles.userEmail}>{user.email}</p>
+                  </div>
+                </div>
+                <button class={styles.secondaryBtn} onClick={() => signOut()}>
+                  Cerrar sesión
+                </button>
+              </div>
+            ) : (
+              <button class={`${styles.googleBtn} ${styles[color]}`} onClick={() => signInWithGoogle()}>
+                <GoogleIcon size={20} /> Iniciar sesión con Google
+              </button>
+            )}
+          </div>
+        )}
+
+        {matchesSearch('churches') && (
+          <div class={styles.section}>
+            <h3 class={styles.sectionTitle}>Iglesias</h3>
+            <button class={styles.churchManageBtn} onClick={() => onNavigate('orden/iglesias')}>
+              <ChurchIcon size={20} /> Administrar iglesias
+            </button>
+          </div>
+        )}
+
+        {matchesSearch('bibleVersion') && (
+          <div class={styles.section}>
+            <h3 class={styles.sectionTitle}>Versión de la Biblia</h3>
+            <div class={styles.versionPicker}>
+              {BIBLE_VERSIONS.map(v => (
+                <button
+                  key={v.id}
+                  class={`${styles.versionBtn} ${bibleVersion === v.id ? styles.versionActive : ''}`}
+                  onClick={() => updateBibleVersion(v.id)}
+                >
+                  {v.name}
+                </button>
+              ))}
+            </div>
+            <p class={styles.versionHint}>Los capítulos descargados se mantienen en la versión anterior.</p>
+          </div>
+        )}
+
+        {matchesSearch('appInfo') && (
+          <div class={styles.section}>
+            <h3 class={styles.sectionTitle}>Información de la App</h3>
+            <p class={styles.versionHint}>Versión {APP_VERSION}</p>
+            <div class={styles.infoLinks}>
+              <h4 class={styles.subtitle}>Registro de cambios</h4>
+              {CHANGELOG.map(entry => (
+                <div key={entry.version} class={styles.changelogEntry}>
+                  <p class={styles.changelogVersion}>v{entry.version} — {entry.date}</p>
+                  <ul class={styles.changelogList}>
+                    {entry.changes.map((change, i) => (
+                      <li key={i} class={styles.changelogItem}>{change}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {matchesSearch('contact') && (
+          <div class={styles.section}>
+            <h3 class={styles.sectionTitle}>Contacto y Donaciones</h3>
+            <p class={styles.versionHint}>
+              App creada para uso gratuito. Si deseas apoyar al mantenimiento del proyecto puedes hacer una donación.
+            </p>
+            <div class={styles.donateRow}>
+              <a
+                href="https://www.mercadopago.com.mx/subscriptions/checkout?preapproval_plan_id=2c93808480710707018077566dd00124"
+                target="_blank"
+                rel="noopener noreferrer"
+                class={`${styles.donateBtn} ${styles[color]}`}
+              >
+                Donar mensualmente
+              </a>
+            </div>
+            <div class={styles.contactRow}>
+              <a href="https://wa.me/529997700066" target="_blank" rel="noopener noreferrer" class={styles.contactLink}>WhatsApp</a>
+              <a href="https://www.facebook.com/himnariop" target="_blank" rel="noopener noreferrer" class={styles.contactLink}>Facebook</a>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

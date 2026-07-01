@@ -55,16 +55,17 @@ export function WorshipOrderView({ orderId, onNavigate }: Props) {
   async function loadOrder() {
     setLoading(true);
     setAccessError('');
+
     const local = getOrder(orderId);
     const user = getCurrentUser();
     const cloudId = local?.cloudId || orderId;
 
-    if (local && !cloudId) {
+    // Show cached version immediately
+    if (local) {
       setOrder(local);
-      setLoading(false);
-      return;
     }
 
+    // Try to fetch from cloud in background
     try {
       const db = getFirebaseDb();
       const snap = await getDoc(doc(db, 'ordenes', cloudId));
@@ -88,8 +89,8 @@ export function WorshipOrderView({ orderId, onNavigate }: Props) {
       console.error('Failed to fetch order from cloud:', err);
     }
 
-    if (local) {
-      setOrder(local);
+    if (!local) {
+      setAccessError('');
     }
     setLoading(false);
   }
@@ -112,12 +113,20 @@ export function WorshipOrderView({ orderId, onNavigate }: Props) {
     window.location.hash = path;
   };
 
-  if (loading) {
+  if (loading && !order) {
     return (
       <div class={styles.container} data-theme={theme}>
-        <div class={styles.empty}>
-          <p>Cargando orden de culto...</p>
-        </div>
+        <header class={`${styles.header} ${styles[color]}`}>
+          <button class={styles.backBtn} onClick={() => onNavigate('orden')}>
+            <ChevronLeftIcon size={24} />
+          </button>
+          <h1 class={styles.headerTitle}>Cargando orden...</h1>
+        </header>
+        <main class={styles.main}>
+          <div class={styles.empty}>
+            <p>Cargando orden de culto...</p>
+          </div>
+        </main>
       </div>
     );
   }
@@ -174,6 +183,7 @@ export function WorshipOrderView({ orderId, onNavigate }: Props) {
           <ChevronLeftIcon size={24} />
         </button>
         <h1 class={styles.headerTitle}>{order.title}</h1>
+        {loading && <span class={styles.syncBadge}>Sincronizando...</span>}
         <div class={styles.headerActions}>
           <button class={styles.headerBtn} onClick={() => setShowShare(true)} title="Compartir">
             <ShareIcon size={20} />
@@ -256,7 +266,9 @@ function SlideCard({ slide, hymnCache, onNavigate, color: _color }: {
       const book = slide.bookId ? getBookById(slide.bookId) : undefined;
       const chapter = slide.chapter || 1;
       const verseRange = slide.startVerse && slide.endVerse
-        ? `${slide.startVerse}-${slide.endVerse}`
+        ? slide.startVerse !== slide.endVerse
+          ? `${slide.startVerse}-${slide.endVerse}`
+          : `${slide.startVerse}`
         : slide.startVerse
           ? `${slide.startVerse}`
           : '';

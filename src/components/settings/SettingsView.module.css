@@ -313,3 +313,75 @@
 .churchManageBtn:hover {
   background: var(--hover-bg, rgba(128, 128, 128, 0.1));
 }
+
+.infoLinks {
+  margin-top: 8px;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--on-background);
+}
+
+.changelogEntry {
+  margin-bottom: 12px;
+  padding: 8px;
+  background: var(--surface, rgba(128,128,128,0.08));
+  border-radius: 8px;
+}
+
+.changelogVersion {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: var(--on-background);
+}
+
+.changelogList {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.changelogItem {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--on-background);
+}
+
+.donateRow {
+  margin-bottom: 8px;
+}
+
+.donateBtn {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.contactRow {
+  display: flex;
+  gap: 8px;
+}
+
+.contactLink {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: var(--surface, rgba(128,128,128,0.08));
+  color: var(--on-background);
+  border: 1px solid var(--border-color, rgba(128,128,128,0.2));
+}
+
+.contactLink:hover {
+  background: var(--hover-bg, rgba(128,128,128,0.15));
+}

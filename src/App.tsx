@@ -10,12 +10,14 @@ import { BibleChapter } from './components/bible/BibleChapter';
 import { TabBar } from './components/ui/TabBar';
 import { FavoritesView } from './components/settings/FavoritesView';
 import { SettingsView } from './components/settings/SettingsView';
-import { InfoView } from './components/settings/InfoView';
 import { WorshipOrderHome } from './components/orden/WorshipOrderHome';
 import { WorshipOrderView } from './components/orden/WorshipOrderView';
 import { WorshipOrderEditor } from './components/orden/WorshipOrderEditor';
 import { ChurchManagerView } from './components/orden/ChurchManagerView';
+import { UpdateDialog } from './components/update/UpdateDialog';
 import { getReturnTo, setReturnTo } from './services/ordenStorage';
+import { hasNewVersion } from './services/versionService';
+import { APP_VERSION } from './data/changelog';
 import './styles/reset.css';
 import './styles/variables.css';
 
@@ -27,10 +29,18 @@ export function App() {
   const [bibliaSearch, setBibliaSearch] = useState('');
   const [cultosSearch, setCultosSearch] = useState('');
   const [favoritosSearch, setFavoritosSearch] = useState('');
+  const [configuracionSearch, setConfiguracionSearch] = useState('');
+  const [showUpdate, setShowUpdate] = useState(false);
 
   useEffect(() => {
     storage.initializeDefaults();
     initAuth();
+  }, []);
+
+  useEffect(() => {
+    if (hasNewVersion(APP_VERSION)) {
+      setShowUpdate(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -97,6 +107,14 @@ export function App() {
         showSearch: true,
       };
     }
+    if (section === 'configuracion') {
+      return {
+        searchValue: configuracionSearch,
+        onSearchChange: setConfiguracionSearch,
+        searchPlaceholder: 'Buscar en configuración...',
+        showSearch: true,
+      };
+    }
     return { showSearch: false };
   };
 
@@ -140,11 +158,8 @@ export function App() {
       case 'favoritos':
         return <FavoritesView onNavigate={handleNavigate} searchQuery={favoritosSearch} onSearchChange={setFavoritosSearch} />;
 
-      case 'info':
-        return <InfoView onNavigate={handleNavigate} />;
-
       case 'configuracion':
-        return <SettingsView onNavigate={handleNavigate} />;
+        return <SettingsView onNavigate={handleNavigate} searchQuery={configuracionSearch} />;
 
       case 'himnario':
       default:
@@ -180,6 +195,7 @@ export function App() {
         />
       )}
       {renderContent()}
+      {showUpdate && <UpdateDialog onClose={() => setShowUpdate(false)} />}
     </>
   );
 }

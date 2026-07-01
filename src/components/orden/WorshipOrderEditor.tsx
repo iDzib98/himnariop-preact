@@ -426,7 +426,9 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
                   <>
                     <span>{getBookById(slide.bookId || '')?.nombre || slide.bookId} {slide.chapter}
                       {slide.startVerse && slide.endVerse
-                        ? `:${slide.startVerse}-${slide.endVerse}`
+                        ? slide.startVerse !== slide.endVerse
+                          ? `:${slide.startVerse}-${slide.endVerse}`
+                          : `:${slide.startVerse}`
                         : slide.startVerse ? `:${slide.startVerse}` : ''}
                     </span>
                     {slide.posture && (

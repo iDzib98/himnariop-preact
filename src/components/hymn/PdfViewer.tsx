@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { getExternalPdfUrl } from '../../services/api';
 import { CloseIcon, ExpandIcon, CompressIcon, ZoomInIcon, ZoomOutIcon } from '../ui/Icons';
 import styles from './PdfViewer.module.css';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
 interface PdfViewerProps {
   numero: number;

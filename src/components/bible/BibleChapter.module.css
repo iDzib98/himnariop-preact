@@ -284,6 +284,7 @@
 .yellow { background-color: var(--color-yellow); }
 .amber { background-color: var(--color-amber); }
 .orange { background-color: var(--color-orange); }
+.deepOrange,
 .deep-orange { background-color: var(--color-deep-orange); }
 .brown { background-color: var(--color-brown); }
 .grey { background-color: var(--color-grey); }

@@ -6,10 +6,43 @@ import type { BibleVerse } from '../../services/bibleApi';
 import { getHimno } from '../../services/api';
 import { fetchChapter } from '../../services/bibleApi';
 import { getBookById } from '../../data/books';
-import { ChevronUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, PersonIcon, StandingIcon, GroupIcon, SittingIcon } from '../ui/Icons';
+import { ChevronUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, PersonIcon, StandingIcon, GroupIcon, SittingIcon, PlayIcon, PauseIcon, StopIcon } from '../ui/Icons';
+import { useAudio, type PlaybackSpeed } from '../../hooks/useAudio';
 import styles from './WorshipOrderTv.module.css';
 
 const SLIDE_WIDTH = 800;
+
+const SPEEDS: PlaybackSpeed[] = [0.75, 1, 1.25, 1.5];
+
+function TvAudioButton({ hymnNumber }: { hymnNumber: number }) {
+  const { isPlaying, isLoaded, audioError, stop, play, pause, speed, setSpeed } = useAudio(hymnNumber);
+  const cycleSpeed = () => {
+    const idx = SPEEDS.indexOf(speed);
+    setSpeed(SPEEDS[(idx + 1) % SPEEDS.length]);
+  };
+  if (!isLoaded || audioError) return null;
+  return (
+    <div class={styles.audioControls}>
+      {isPlaying && (
+        <button class={styles.ctrlBtn} onClick={(e) => { e.stopPropagation(); stop(); }} title="Detener">
+          <StopIcon size={18} />
+        </button>
+      )}
+      <button
+        class={styles.ctrlBtn}
+        onClick={(e) => { e.stopPropagation(); isPlaying ? pause() : play(); }}
+        title={isPlaying ? 'Pausar' : 'Reproducir'}
+      >
+        {isPlaying ? <PauseIcon size={22} /> : <PlayIcon size={22} />}
+      </button>
+      {isPlaying && (
+        <button class={styles.speedBtn} onClick={(e) => { e.stopPropagation(); cycleSpeed(); }} title="Velocidad">
+          {speed}x
+        </button>
+      )}
+    </div>
+  );
+}
 
 function getVerseReaders(verseIdx: number, total: number, flow?: ReadingFlow): ('pulpit' | 'congregation' | 'together')[] {
   if (!flow) return ['congregation'];
@@ -85,9 +118,16 @@ function renderSubContent(vs: VerseSlide, subIdx: number, total: number, color: 
   if (subIdx === 0) {
     return (
       <div class={styles.verseTitleSlide}>
+        {vs.slide.type === 'bible-reading' && <p class={styles.verseLabel}>Lectura bíblica</p>}
         <h2 class={styles.verseTitle}>{vs.title}</h2>
-        {vs.verses.length > 0 && vs.slide.type === 'bible-reading' && vs.bibleRange && (
-          <p class={styles.verseCount}>Versículos {vs.bibleRange.start}–{vs.bibleRange.end}</p>
+        {vs.slide.type === 'bible-reading' && vs.slide.readingFlow && (
+          <div class={styles.flowIndicator}>
+            {vs.slide.readingFlow === 'pulpit' ? <span class={styles.flowItem}><PersonIcon size={16} /><span>Púlpito</span></span>
+            : vs.slide.readingFlow === 'congregation' ? <span class={styles.flowItem}><GroupIcon size={16} /><span>Iglesia</span></span>
+            : vs.slide.readingFlow === 'together' ? <span class={styles.flowItem}><span class={styles.togetherIcons}><PersonIcon size={16} /><GroupIcon size={16} /></span><span>Todos juntos</span></span>
+            : vs.slide.readingFlow === 'antiphonal' ? <span class={styles.flowItem}><span class={styles.togetherIcons}><PersonIcon size={16} /><GroupIcon size={16} /></span><span>Antifonal</span></span>
+            : null}
+          </div>
         )}
         {vs.verses.length > 0 && vs.slide.type !== 'bible-reading' && (
           <p class={styles.verseCount}>{vs.verses.length} verso{vs.verses.length !== 1 ? 's' : ''}</p>
@@ -132,15 +172,23 @@ export function WorshipOrderTv({ order, hymnCache, onClose, theme, color }: Prop
   const [currentSubSlide, setCurrentSubSlide] = useState(0);
   const [scale, setScale] = useState(1);
   const [uiVisible, setUiVisible] = useState(true);
+  const [extraVisible, setExtraVisible] = useState(true);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef(0);
   const touchStartX = useRef(0);
   const uiTimerRef = useRef<number>(0);
+  const extraTimerRef = useRef<number>(0);
 
   const showUI = useCallback(() => {
     setUiVisible(true);
     clearTimeout(uiTimerRef.current);
     uiTimerRef.current = window.setTimeout(() => setUiVisible(false), 1000);
+  }, []);
+
+  const showExtra = useCallback(() => {
+    setExtraVisible(true);
+    clearTimeout(extraTimerRef.current);
+    extraTimerRef.current = window.setTimeout(() => setExtraVisible(false), 3000);
   }, []);
 
   useEffect(() => {
@@ -160,7 +208,7 @@ export function WorshipOrderTv({ order, hymnCache, onClose, theme, color }: Prop
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
 
-    const handleMouseMove = () => showUI();
+    const handleMouseMove = () => { showUI(); showExtra(); };
     window.addEventListener('mousemove', handleMouseMove);
 
     if (wrapper.requestFullscreen) {
@@ -172,12 +220,17 @@ export function WorshipOrderTv({ order, hymnCache, onClose, theme, color }: Prop
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       window.removeEventListener('mousemove', handleMouseMove);
       clearTimeout(uiTimerRef.current);
+      clearTimeout(extraTimerRef.current);
     };
   }, []);
 
   useEffect(() => {
     uiTimerRef.current = window.setTimeout(() => setUiVisible(false), 1000);
-    return () => clearTimeout(uiTimerRef.current);
+    extraTimerRef.current = window.setTimeout(() => setExtraVisible(false), 3000);
+    return () => {
+      clearTimeout(uiTimerRef.current);
+      clearTimeout(extraTimerRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -228,7 +281,7 @@ export function WorshipOrderTv({ order, hymnCache, onClose, theme, color }: Prop
 
           results.push({
             verses: filtered.map(v => `${v.verse}. ${v.text}`),
-            title: `${book?.nombre || bookId} ${ch}${start !== 1 || end !== allVerses.length ? `:${start}-${end}` : ''}`,
+            title: `${book?.nombre || bookId} ${ch}${start !== 1 || end !== allVerses.length ? (start !== end ? `:${start}-${end}` : `:${start}`) : ''}`,
             slide,
             bibleRange: { start, end },
           });
@@ -251,31 +304,31 @@ export function WorshipOrderTv({ order, hymnCache, onClose, theme, color }: Prop
     if (currentSlide > 0) {
       setCurrentSlide(prev => prev - 1);
       setCurrentSubSlide(0);
-      showUI();
+      showUI(); showExtra();
     }
-  }, [currentSlide, showUI]);
+  }, [currentSlide, showUI, showExtra]);
 
   const goNextSlide = useCallback(() => {
     if (currentSlide < verseSlides.length - 1) {
       setCurrentSlide(prev => prev + 1);
       setCurrentSubSlide(0);
-      showUI();
+      showUI(); showExtra();
     }
-  }, [currentSlide, verseSlides.length, showUI]);
+  }, [currentSlide, verseSlides.length, showUI, showExtra]);
 
   const goPrevSub = useCallback(() => {
     if (currentSubSlide > 0) {
       setCurrentSubSlide(prev => prev - 1);
-      showUI();
+      showUI(); showExtra();
     }
-  }, [currentSubSlide, showUI]);
+  }, [currentSubSlide, showUI, showExtra]);
 
   const goNextSub = useCallback(() => {
     if (currentSubSlide < totalSubSlides - 1) {
       setCurrentSubSlide(prev => prev + 1);
-      showUI();
+      showUI(); showExtra();
     }
-  }, [currentSubSlide, totalSubSlides, showUI]);
+  }, [currentSubSlide, totalSubSlides, showUI, showExtra]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -401,7 +454,7 @@ export function WorshipOrderTv({ order, hymnCache, onClose, theme, color }: Prop
         </div>
       </div>
 
-      <div class={`${styles.bottomLeft} ${uiVisible ? '' : styles.hidden}`}>
+      <div class={`${styles.bottomLeft} ${extraVisible ? '' : styles.hidden}`}>
         {vs.slide.posture && (isPlainSlide || currentSubSlide === 0) && (
           <div class={`${styles.postureIndicator} ${vs.slide.posture === 'standing' ? styles.standingBg : styles.sittingBg}`}>
             {vs.slide.posture === 'standing' ? <StandingIcon size={18} /> : <SittingIcon size={18} />}
@@ -428,6 +481,12 @@ export function WorshipOrderTv({ order, hymnCache, onClose, theme, color }: Prop
         </button>
       </div>
 
+      {vs.slide.type === 'hymn' && vs.hymn && (
+        <div class={`${styles.topCenter} ${extraVisible ? '' : styles.hidden}`}>
+          <TvAudioButton hymnNumber={vs.hymn.numero} />
+        </div>
+      )}
+
       <div class={`${styles.rightNav} ${uiVisible ? '' : styles.hidden}`}>
         <button class={styles.navArrow} onClick={(e) => { e.stopPropagation(); goPrevSlide(); }} disabled={currentSlide === 0}>
           <ChevronUpIcon size={22} />
@@ -437,7 +496,7 @@ export function WorshipOrderTv({ order, hymnCache, onClose, theme, color }: Prop
             <button
               key={i}
               class={`${styles.dot} ${i === currentSlide ? styles.activeDot : ''}`}
-              onClick={(e) => { e.stopPropagation(); setCurrentSlide(i); setCurrentSubSlide(0); showUI(); }}
+              onClick={(e) => { e.stopPropagation(); setCurrentSlide(i); setCurrentSubSlide(0); showUI(); showExtra(); }}
             />
           ))}
         </div>

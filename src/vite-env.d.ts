@@ -3,6 +3,11 @@ declare module '*.module.css' {
   export default classes;
 }
 
+declare module '*?url' {
+  const url: string;
+  export default url;
+}
+
 declare module 'virtual:pwa-register' {
   export interface RegisterSWOptions {
     immediate?: boolean;

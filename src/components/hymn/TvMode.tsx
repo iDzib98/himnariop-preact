@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
 import type { Himno } from '../../types/himno';
-import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, PlayIcon, PauseIcon } from '../ui/Icons';
-import { useAudio } from '../../hooks/useAudio';
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, PlayIcon, PauseIcon, StopIcon } from '../ui/Icons';
+import { useAudio, type PlaybackSpeed } from '../../hooks/useAudio';
 import styles from './TvMode.module.css';
 
 interface TvModeProps {
@@ -13,15 +13,24 @@ interface TvModeProps {
 
 const SLIDE_WIDTH = 800;
 const UI_HIDE_DELAY = 1000;
+const EXTRA_HIDE_DELAY = 3000;
+const SPEEDS: PlaybackSpeed[] = [0.75, 1, 1.25, 1.5];
 
 export function TvMode({ himno, onClose, color, theme }: TvModeProps) {
   const [slide, setSlide] = useState(0);
   const [scale, setScale] = useState(1);
   const [uiVisible, setUiVisible] = useState(true);
+  const [extraVisible, setExtraVisible] = useState(true);
   const uiTimer = useRef<number>(0);
+  const extraTimer = useRef<number>(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
-  const { isPlaying, play, pause } = useAudio(himno.numero);
+  const { isPlaying, isLoaded, audioError, play, pause, stop, speed, setSpeed } = useAudio(himno.numero);
+  const audioAvailable = isLoaded && !audioError;
+  const cycleSpeed = () => {
+    const idx = SPEEDS.indexOf(speed);
+    setSpeed(SPEEDS[(idx + 1) % SPEEDS.length]);
+  };
 
   const totalSlides = 2 + himno.versos.length;
 
@@ -31,15 +40,21 @@ export function TvMode({ himno, onClose, color, theme }: TvModeProps) {
     uiTimer.current = window.setTimeout(() => setUiVisible(false), UI_HIDE_DELAY);
   }, []);
 
+  const showExtra = useCallback(() => {
+    setExtraVisible(true);
+    window.clearTimeout(extraTimer.current);
+    extraTimer.current = window.setTimeout(() => setExtraVisible(false), EXTRA_HIDE_DELAY);
+  }, []);
+
   const goNext = useCallback(() => {
     setSlide(s => Math.min(s + 1, totalSlides - 1));
-    showUi();
-  }, [totalSlides, showUi]);
+    showUi(); showExtra();
+  }, [totalSlides, showUi, showExtra]);
 
   const goPrev = useCallback(() => {
     setSlide(s => Math.max(s - 1, 0));
-    showUi();
-  }, [showUi]);
+    showUi(); showExtra();
+  }, [showUi, showExtra]);
 
   const exitFullscreen = useCallback(() => {
     if (document.fullscreenElement) {
@@ -84,17 +99,18 @@ export function TvMode({ himno, onClose, color, theme }: TvModeProps) {
   }, []);
 
   useEffect(() => {
-    const handleMouseMove = () => showUi();
+    const handleMouseMove = () => { showUi(); showExtra(); };
     window.addEventListener('mousemove', handleMouseMove);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.clearTimeout(uiTimer.current);
+      window.clearTimeout(extraTimer.current);
     };
-  }, [showUi]);
+  }, [showUi, showExtra]);
 
   useEffect(() => {
-    showUi();
-  }, [slide, showUi]);
+    showUi(); showExtra();
+  }, [slide, showUi, showExtra]);
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -191,6 +207,7 @@ export function TvMode({ himno, onClose, color, theme }: TvModeProps) {
   };
 
   const uiClass = uiVisible ? '' : styles.hidden;
+  const extraClass = extraVisible ? '' : styles.hidden;
 
   return (
     <div class={styles.container} data-theme={theme} onContextMenu={(e) => e.preventDefault()}>
@@ -200,18 +217,29 @@ export function TvMode({ himno, onClose, color, theme }: TvModeProps) {
         </button>
       </div>
 
-      <div class={`${styles.topRight} ${uiClass}`}>
-        <button
-          class={styles.playBtn}
-          onClick={(e) => {
-            e.stopPropagation();
-            isPlaying ? pause() : play();
-          }}
-          title={isPlaying ? 'Pausar' : 'Reproducir'}
-        >
-          {isPlaying ? <PauseIcon size={22} /> : <PlayIcon size={22} />}
-        </button>
-      </div>
+      {audioAvailable && (
+        <div class={`${styles.topCenter} ${extraClass}`}>
+          <div class={styles.audioControls}>
+            {isPlaying && (
+              <button class={styles.ctrlBtn} onClick={(e) => { e.stopPropagation(); stop(); }} title="Detener">
+                <StopIcon size={18} />
+              </button>
+            )}
+            <button
+              class={styles.ctrlBtn}
+              onClick={(e) => { e.stopPropagation(); isPlaying ? pause() : play(); }}
+              title={isPlaying ? 'Pausar' : 'Reproducir'}
+            >
+              {isPlaying ? <PauseIcon size={22} /> : <PlayIcon size={22} />}
+            </button>
+            {isPlaying && (
+              <button class={styles.speedBtn} onClick={(e) => { e.stopPropagation(); cycleSpeed(); }} title="Velocidad">
+                {speed}x
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <main
         class={styles.main}
@@ -245,7 +273,7 @@ export function TvMode({ himno, onClose, color, theme }: TvModeProps) {
                 onClick={(e) => {
                   e.stopPropagation();
                   setSlide(i);
-                  showUi();
+                  showUi(); showExtra();
                 }}
               />
             ))}

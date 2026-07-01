@@ -48,15 +48,29 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,svg,woff2,json}'],
+        globPatterns: ['**/*.{js,css,html,ico,svg,woff2,json,mjs}'],
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/himnos\//],
         runtimeCaching: [
           {
-            urlPattern: /^\/himnos\/.*\.pdf$/,
+            urlPattern: /\/himnos\/.*\.pdf$/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'pdf-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /https:\/\/a16016344\.github\.io\/himnariop\/himno\/mp3\/.*\.mp3$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'audio-cache',
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 * 30

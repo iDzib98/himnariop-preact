@@ -2,6 +2,10 @@ import type { CacheEntry } from '../types/himno';
 import { getAudioUrl, getPdfUrl } from './api';
 
 const CACHE_NAME = 'himnario-audio-pdf-v1';
+const SW_CACHE_NAMES: Record<string, string> = {
+  audio: 'audio-cache',
+  pdf: 'pdf-cache'
+};
 
 export const cacheService = {
   async cacheHimnoMedia(numero: number): Promise<void> {
@@ -16,11 +20,13 @@ export const cacheService = {
 
   async cacheUrl(url: string, type: 'audio' | 'pdf'): Promise<void> {
     try {
-      const cache = await caches.open(CACHE_NAME);
       const fetchOptions: RequestInit = type === 'audio' ? { mode: 'no-cors' } : {};
       const response = await fetch(url, fetchOptions);
       if (response.ok || response.type === 'opaque') {
-        await cache.put(url, response);
+        const cacheNames = [CACHE_NAME, SW_CACHE_NAMES[type]].filter(Boolean);
+        await Promise.all(cacheNames.map(name =>
+          caches.open(name).then(cache => cache.put(url, response.clone()))
+        ));
       }
     } catch (error) {
       console.warn(`Failed to cache ${url}:`, error);
@@ -86,6 +92,7 @@ export const cacheService = {
   },
 
   async clearAllCache(): Promise<void> {
-    await caches.delete(CACHE_NAME);
+    const allNames = [CACHE_NAME, ...Object.values(SW_CACHE_NAMES)];
+    await Promise.all(allNames.map(name => caches.delete(name)));
   }
 };

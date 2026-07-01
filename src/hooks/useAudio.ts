@@ -10,6 +10,7 @@ interface AudioState {
   duration: number;
   isLoaded: boolean;
   speed: PlaybackSpeed;
+  audioError: boolean;
 }
 
 export function useAudio(himnoNumero: number) {
@@ -19,7 +20,8 @@ export function useAudio(himnoNumero: number) {
     currentTime: 0,
     duration: 0,
     isLoaded: false,
-    speed: 1
+    speed: 1,
+    audioError: false
   });
 
   useEffect(() => {
@@ -42,12 +44,14 @@ export function useAudio(himnoNumero: number) {
 
     const handlePlay = () => setState(s => ({ ...s, isPlaying: true }));
     const handlePause = () => setState(s => ({ ...s, isPlaying: false }));
+    const handleError = () => setState(s => ({ ...s, audioError: true, isLoaded: true }));
 
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
+    audio.addEventListener('error', handleError);
 
     // Cache audio for offline
     cacheService.cacheHimnoMedia(himnoNumero);
@@ -58,6 +62,7 @@ export function useAudio(himnoNumero: number) {
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('error', handleError);
       audio.pause();
       audio.src = '';
     };

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'preact/hooks';
 
-export type Section = 'himnario' | 'biblia' | 'orden' | 'favoritos' | 'info' | 'configuracion';
+export type Section = 'himnario' | 'biblia' | 'orden' | 'favoritos' | 'configuracion';
 
 export function useHashRoute() {
   const [route, setRoute] = useState<string>(() => {
@@ -28,19 +28,18 @@ export function useHashRoute() {
   const baseRoute = parts[0];
 
   const hymnNumber = (() => {
-    if (baseRoute === 'home' || baseRoute === 'biblia' || baseRoute === 'orden' || baseRoute === 'favoritos' || baseRoute === 'info' || baseRoute === 'configuracion') return null;
+    if (baseRoute === 'home' || baseRoute === 'biblia' || baseRoute === 'orden' || baseRoute === 'favoritos' || baseRoute === 'configuracion') return null;
     const num = parseInt(baseRoute, 10);
     if (!isNaN(num) && num >= 1 && num <= 706) return num;
     return null;
   })();
 
-  const isHome = baseRoute === 'home' || baseRoute === '' || (hymnNumber === null && baseRoute !== 'biblia' && baseRoute !== 'orden' && baseRoute !== 'favoritos' && baseRoute !== 'info' && baseRoute !== 'configuracion');
+  const isHome = baseRoute === 'home' || baseRoute === '' || (hymnNumber === null && baseRoute !== 'biblia' && baseRoute !== 'orden' && baseRoute !== 'favoritos' && baseRoute !== 'configuracion');
 
   const section: Section = (() => {
     if (baseRoute === 'biblia') return 'biblia';
     if (baseRoute === 'orden') return 'orden';
     if (baseRoute === 'favoritos') return 'favoritos';
-    if (baseRoute === 'info') return 'info';
     if (baseRoute === 'configuracion') return 'configuracion';
     return 'himnario';
   })();
