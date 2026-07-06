@@ -1,5 +1,4 @@
 import { useState } from 'preact/hooks';
-import { useSettings } from '../../hooks/useSettings';
 import { CHANGELOG, APP_VERSION } from '../../data/changelog';
 import { setLastSeenVersion } from '../../services/versionService';
 import styles from './UpdateDialog.module.css';
@@ -9,7 +8,6 @@ interface UpdateDialogProps {
 }
 
 export function UpdateDialog({ onClose }: UpdateDialogProps) {
-  const { color } = useSettings();
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const latestEntry = CHANGELOG[0];
@@ -32,7 +30,7 @@ export function UpdateDialog({ onClose }: UpdateDialogProps) {
   return (
     <div class={styles.overlay} onClick={handleClose}>
       <div class={styles.dialog} onClick={(e) => e.stopPropagation()}>
-        <div class={`${styles.header} ${styles[color]}`}>
+        <div class={styles.header}>
           <h2 class={styles.title}>¡Novedades en la app!</h2>
           <p class={styles.version}>Versión {APP_VERSION}</p>
         </div>
@@ -67,7 +65,7 @@ export function UpdateDialog({ onClose }: UpdateDialogProps) {
 
           <div class={styles.infoSection}>
             <p class={styles.text}>
-              App creada para uso gratuito. Si deseas apoyar al mantenimiento del proyecto puedes hacer una donación.
+              App creada para uso gratuito. Si deseas apoyar al mantenimiento del proyecto puedes hacer una donación desde $10 pesos al mes con el botón de "Donar". Si prefieres donar una sola vez, o algo no funciona correctamente en la aplicación, o tienes alguna sugerencia puedes ponerte en contacto.  
             </p>
             <div class={styles.contactRow}>
               <a href="https://wa.me/529997700066" target="_blank" rel="noopener noreferrer" class={`${styles.contactBtn} ${styles.green}`}>WhatsApp</a>
@@ -87,7 +85,7 @@ export function UpdateDialog({ onClose }: UpdateDialogProps) {
 
         <div class={styles.footer}>
           <button class={`${styles.btn} ${styles.donateBtn}`} onClick={handleDonate}>Donar</button>
-          <button class={`${styles.btn} ${styles.closeBtn} ${styles[color]}`} onClick={handleClose}>Cerrar</button>
+          <button class={`${styles.btn} ${styles.closeBtn}`} onClick={handleClose}>Cerrar</button>
         </div>
       </div>
     </div>

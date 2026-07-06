@@ -25,7 +25,9 @@
 .header {
   padding: 24px;
   text-align: center;
-  color: #fff;
+  color: var(--on-background);
+  background: var(--surface);
+  border-bottom: 1px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
 }
 
 .title {
@@ -171,6 +173,7 @@
 
 .closeBtn {
   color: #fff;
+  background: var(--primary);
 }
 
 @media (min-width: 768px) {
