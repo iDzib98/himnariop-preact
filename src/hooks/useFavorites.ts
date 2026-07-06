@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'preact/hooks';
 import { storage } from '../services/storage';
+import { syncFavoritesAfterChange } from '../services/cloudFavoritesService';
 
 export function useFavorites() {
   const [favorites, setFavorites] = useState<number[]>(() => storage.favoritos);
@@ -15,6 +16,7 @@ export function useFavorites() {
       ? current.filter(n => n !== numero)
       : [...current, numero].sort((a, b) => a - b);
     storage.favoritos = newFavorites;
+    syncFavoritesAfterChange();
   }, []);
 
   const isFavorite = useCallback((numero: number): boolean => {

@@ -1,3 +1,5 @@
+import { syncFavoritesAfterChange } from './cloudFavoritesService';
+
 const FAVORITES_KEY = 'user_favorites';
 
 export function getFavorites(): string[] {
@@ -29,9 +31,11 @@ export function isFavorite(songId: string): boolean {
 export function toggleFavorite(songId: string): boolean {
   if (isFavorite(songId)) {
     removeFavorite(songId);
+    syncFavoritesAfterChange();
     return false;
   } else {
     addFavorite(songId);
+    syncFavoritesAfterChange();
     return true;
   }
 }

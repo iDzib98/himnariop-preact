@@ -5,6 +5,7 @@ import type { BibleVerse } from '../../services/bibleApi';
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, CloseIcon, BibleIcon, StarIcon, StarFilledIcon, TvIcon, PrintIcon, ShareIcon } from '../ui/Icons';
 import { useSettings } from '../../hooks/useSettings';
 import { storage } from '../../services/storage';
+import { syncFavoritesAfterChange } from '../../services/cloudFavoritesService';
 import { BibleTvMode } from './BibleTvMode';
 import styles from './BibleChapter.module.css';
 
@@ -36,6 +37,7 @@ export function BibleChapter({ bookId, chapter, onNavigate, returnTo, startVerse
       : [...current, chapterKey];
     storage.setBibleFavorites(updated);
     setBibleFavorites(updated);
+    syncFavoritesAfterChange();
   }, [chapterKey]);
 
   const book = getBookById(bookId);
