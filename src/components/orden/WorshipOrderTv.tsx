@@ -65,6 +65,7 @@ interface VerseSlide {
   slide: WorshipSlide;
   hymn?: Himno;
   bibleRange?: { start: number; end: number };
+  imageUrls?: string[];
 }
 
 interface Props {
@@ -76,8 +77,28 @@ interface Props {
   color: string;
 }
 
-function renderSubContent(vs: VerseSlide, subIdx: number, total: number, color: string): JSX.Element | null {
+function renderSubContent(vs: VerseSlide, subIdx: number, total: number, color: string, scale: number): JSX.Element | null {
   if (total === 0) return null;
+
+  if (vs.slide.type === 'presentation' && vs.imageUrls) {
+    if (subIdx === 0) {
+      return (
+        <div class={styles.verseTitleSlide}>
+          <p class={styles.verseLabel}>Presentación</p>
+          <h2 class={styles.verseTitle}>{vs.title}</h2>
+          <p class={styles.verseCount}>{vs.imageUrls.length} diapositivas</p>
+        </div>
+      );
+    }
+    const imgIdx = subIdx - 1;
+    const imgUrl = vs.imageUrls[imgIdx];
+    if (!imgUrl) return null;
+    return (
+      <div class={styles.presentationSlide}>
+        <img src={imgUrl} alt={`Diapositiva ${imgIdx + 1}`} class={styles.presentationImage} style={{ maxHeight: `calc(100vh / ${scale})` }} />
+      </div>
+    );
+  }
 
   if (vs.slide.type === 'hymn' && vs.hymn) {
     const hymn = vs.hymn;
@@ -313,6 +334,15 @@ export function WorshipOrderTv({ order, hymnCache, userSongCache = {}, onClose, 
           });
           break;
         }
+
+        case 'presentation':
+          results.push({
+            verses: [],
+            title: slide.title || 'Presentación',
+            slide,
+            imageUrls: slide.imageUrls || [],
+          });
+          break;
       }
     }
 
@@ -322,8 +352,10 @@ export function WorshipOrderTv({ order, hymnCache, userSongCache = {}, onClose, 
   const currentVs = verseSlides[currentSlide];
   const totalSubSlides = currentVs?.slide.type === 'hymn'
     ? 2 + currentVs.verses.length
-    : currentVs?.verses.length > 0
-      ? currentVs.verses.length + 1
+    : currentVs?.slide.type === 'presentation'
+      ? (currentVs.imageUrls?.length || 0) + 1
+      : currentVs?.verses.length > 0
+        ? currentVs.verses.length + 1
       : 0;
 
   const goPrevSlide = useCallback(() => {
@@ -470,13 +502,13 @@ export function WorshipOrderTv({ order, hymnCache, userSongCache = {}, onClose, 
       onTouchEnd={handleTouchEnd}
     >
       <div class={styles.stage} style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}>
-        <div class={styles.slideContent}>
+        <div class={`${styles.slideContent}${vs.slide.type === 'presentation' && currentSubSlide > 0 ? ` ${styles.slideContentPres}` : ''}`}>
           {isPlainSlide ? (
             <div class={styles.titleSlide}>
               <h1 class={styles.tvTitle}>{vs.slide.title}</h1>
               {vs.slide.subtitle && <p class={styles.tvSubtitle}>{vs.slide.subtitle}</p>}
             </div>
-          ) : renderSubContent(vs, currentSubSlide, totalSubSlides, color)}
+          ) : renderSubContent(vs, currentSubSlide, totalSubSlides, color, scale)}
         </div>
       </div>
 
@@ -553,9 +585,13 @@ export function WorshipOrderTv({ order, hymnCache, userSongCache = {}, onClose, 
                       : currentSubSlide === totalSubSlides - 1
                         ? 'Créditos'
                         : `Verso ${currentSubSlide}`
-                    : currentSubSlide > 0
-                    ? `${currentSubSlide} / ${totalSubSlides - 1}`
-                    : `${totalSubSlides - 1} verso${totalSubSlides - 1 !== 1 ? 's' : ''}`
+                    : vs.slide.type === 'presentation'
+                      ? currentSubSlide === 0
+                        ? `${vs.imageUrls?.length || 0} diapositivas`
+                        : `${currentSubSlide} / ${totalSubSlides - 1}`
+                      : currentSubSlide > 0
+                      ? `${currentSubSlide} / ${totalSubSlides - 1}`
+                      : `${totalSubSlides - 1} verso${totalSubSlides - 1 !== 1 ? 's' : ''}`
               }
             </span>
             <button class={styles.bottomArrow} onClick={(e) => { e.stopPropagation(); goNextSub(); }} disabled={currentSubSlide >= totalSubSlides - 1} title="Verso siguiente">

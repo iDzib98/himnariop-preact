@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "firebase": "^12.15.0",
+    "jszip": "^3.10.1",
     "pdfjs-dist": "^6.0.227",
     "preact": "^10.19.3",
     "workbox-window": "^7.0.0"

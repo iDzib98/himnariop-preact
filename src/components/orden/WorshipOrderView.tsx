@@ -11,7 +11,7 @@ import { getFirebaseDb } from '../../services/firebase';
 import { getCurrentUser } from '../../services/authService';
 import { getChurch, getLocalChurchIds } from '../../services/churchService';
 import { doc, getDoc } from 'firebase/firestore';
-import { ChevronLeftIcon, TvIcon, PrintIcon, PersonIcon, StandingIcon, GroupIcon, SittingIcon, ShareIcon, MusicNoteIcon } from '../ui/Icons';
+import { ChevronLeftIcon, TvIcon, PrintIcon, PersonIcon, StandingIcon, GroupIcon, SittingIcon, ShareIcon, MusicNoteIcon, ImageIcon } from '../ui/Icons';
 import { WorshipOrderTv } from './WorshipOrderTv';
 import { ShareDialog } from './ShareDialog';
 import styles from './WorshipOrderView.module.css';
@@ -349,6 +349,23 @@ function SlideCard({ slide, hymnCache, userSongCache, onNavigate, color: _color 
               </span>
             )}
             {flowIcon}
+          </div>
+        </div>
+      );
+    }
+
+    case 'presentation': {
+      const thumb = slide.imageUrls?.[0];
+      return (
+        <div class={`${styles.slideCard} ${styles.presentationCard}`}>
+          <div class={styles.slideLabel}><ImageIcon size={14} /> PRESENTACIÓN</div>
+          <div class={styles.presentationContent}>
+            <div class={styles.presentationInfo}>
+              <h2 class={styles.slideTitle}>{slide.title || 'Presentación'}</h2>
+            </div>
+            {thumb && (
+              <img src={thumb} alt="preview" class={styles.presentationThumb} />
+            )}
           </div>
         </div>
       );

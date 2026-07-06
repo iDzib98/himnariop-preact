@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useRef } from 'preact/hooks';
 import { getOrder, saveOrder, generateId } from '../../services/ordenStorage';
 import type { WorshipOrder, WorshipSlide, WorshipSlideType, Posture, ReadingFlow, Church } from '../../types/orden';
 import { useSettings } from '../../hooks/useSettings';
@@ -6,11 +6,12 @@ import { getBookById, BOOKS } from '../../data/books';
 import { getHimno, fetchHimnos } from '../../services/api';
 import { fetchChapter } from '../../services/bibleApi';
 import type { Himno, UserSong } from '../../types/himno';
-import { getCurrentUser } from '../../services/authService';
+import { getCurrentUser, signInWithGoogle } from '../../services/authService';
 import { saveOrderToCloud } from '../../services/cloudOrdenService';
 import { getUserChurches } from '../../services/churchService';
 import { getUserSongs } from '../../services/userSongStorage';
-import { ChevronUpIcon, ChevronDownIcon, DeleteIcon, PlusIcon, ChevronLeftIcon, ShareIcon, MusicNoteIcon } from '../ui/Icons';
+import { compressImage, extractZipImages, uploadPresentationSlide, deletePresentationImages } from '../../services/presentationService';
+import { ChevronUpIcon, ChevronDownIcon, DeleteIcon, PlusIcon, ChevronLeftIcon, ShareIcon, MusicNoteIcon, ImageIcon } from '../ui/Icons';
 import styles from './WorshipOrderEditor.module.css';
 
 interface Props {
@@ -18,13 +19,16 @@ interface Props {
   onNavigate: (path: string) => void;
 }
 
-type SlideTab = 'slide' | 'hymn' | 'bible-reading' | 'user-song';
+type SlideTab = 'slide' | 'hymn' | 'bible-reading' | 'user-song' | 'presentation';
 
 export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
   const [order, setOrder] = useState<WorshipOrder>(() => {
     const existing = getOrder(orderId);
     return existing || { id: orderId, title: '', slides: [], createdAt: Date.now(), updatedAt: Date.now() };
   });
+  const initialPresSlideIds = useRef<string[]>(
+    order.slides.filter(s => s.type === 'presentation' && s.imageUrls?.length).map(s => s.id)
+  );
   const [addTab, setAddTab] = useState<SlideTab | null>(null);
   const [newTitle, setNewTitle] = useState('');
   const [newSubtitle, setNewSubtitle] = useState('');
@@ -124,6 +128,17 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
     }
   }, [user]);
 
+  interface LocalPresImage {
+    id: string;
+    dataUrl: string;
+    blob: Blob;
+    name: string;
+  }
+  const [localPresImages, setLocalPresImages] = useState<LocalPresImage[]>([]);
+  const [presTitle, setPresTitle] = useState('');
+  const [presProcessing, setPresProcessing] = useState(false);
+  const [presUploading, setPresUploading] = useState(false);
+
   const selectedBook = selectedBookId ? getBookById(selectedBookId) : undefined;
   const maxChapter = selectedBook ? selectedBook.chapters : 0;
   const chNum = parseInt(chapterInput, 10);
@@ -189,6 +204,13 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
       authorName: user?.displayName || user?.email || order.authorName,
       updatedAt: Date.now(),
     };
+    const currentPresIds = new Set(updated.slides.filter(s => s.type === 'presentation').map(s => s.id));
+    for (const id of initialPresSlideIds.current) {
+      if (!currentPresIds.has(id)) {
+        try { await deletePresentationImages(orderId, id); } catch {}
+      }
+    }
+    initialPresSlideIds.current = updated.slides.filter(s => s.type === 'presentation' && s.imageUrls?.length).map(s => s.id);
     if (user && (isPublic || shareChurchId)) {
       try {
         const cloudId = await saveOrderToCloud(updated, user.uid);
@@ -231,8 +253,33 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
 
   const publicUrl = order.cloudId ? `${window.location.origin}/#orden/${order.cloudId}` : '';
 
-  const addSlide = () => {
+  const addSlide = async () => {
     if (!addTab) return;
+
+    if (addTab === 'presentation') {
+      if (!user) return;
+      if (localPresImages.length === 0) return;
+      setPresUploading(true);
+      try {
+        const slideId = generateId();
+        const urls: string[] = [];
+        for (let i = 0; i < localPresImages.length; i++) {
+          const url = await uploadPresentationSlide(orderId, slideId, localPresImages[i].blob, i);
+          urls.push(url);
+        }
+        const slide: WorshipSlide = { id: slideId, type: 'presentation', title: presTitle || 'Presentación', imageUrls: urls };
+        setOrder(prev => ({ ...prev, slides: [...prev.slides, slide], updatedAt: Date.now() }));
+        setLocalPresImages([]);
+        setPresTitle('');
+        setAddTab(null);
+      } catch (err) {
+        console.error('Upload failed:', err);
+      } finally {
+        setPresUploading(false);
+      }
+      return;
+    }
+
     const slide: WorshipSlide = { id: generateId(), type: addTab };
 
     switch (addTab) {
@@ -475,6 +522,13 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
                     )}
                   </>
                 )}
+                {slide.type === 'presentation' && (
+                  <>
+                    <ImageIcon size={16} />
+                    <span>{slide.title || 'Presentación'}</span>
+                    <span class={styles.postureBadge}>{slide.imageUrls?.length || 0} diapositivas</span>
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -483,13 +537,13 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
         {addTab && (
           <div class={styles.addForm}>
             <div class={styles.addFormTabs}>
-              {(['slide', 'hymn', 'user-song', 'bible-reading'] as SlideTab[]).map(tab => (
+              {(['slide', 'hymn', 'user-song', 'bible-reading', 'presentation'] as SlideTab[]).map(tab => (
                 <button
                   key={tab}
                   class={`${styles.addFormTab} ${addTab === tab ? styles.activeTab : ''} ${styles[color]}`}
                   onClick={() => setAddTab(tab)}
                 >
-                  {tab === 'slide' ? 'Título' : tab === 'hymn' ? 'Himno' : tab === 'user-song' ? 'Mi canto' : 'Lectura'}
+                  {tab === 'slide' ? 'Título' : tab === 'hymn' ? 'Himno' : tab === 'user-song' ? 'Mi canto' : tab === 'bible-reading' ? 'Lectura' : 'Presentación'}
                 </button>
               ))}
             </div>
@@ -704,8 +758,155 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
               </div>
             )}
 
-            <button class={`${styles.confirmAddBtn} ${styles[color]}`} onClick={addSlide}>
-              Agregar
+            {addTab === 'presentation' && (
+              <div class={styles.addFormBody}>
+                {!user ? (
+                  <div class={styles.presLoginPrompt}>
+                    <p>Es necesario iniciar sesión para subir diapositivas</p>
+                    <button class={`${styles.googleBtn} ${styles[color]}`} onClick={() => signInWithGoogle()}>
+                      Iniciar sesión
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      class={styles.input}
+                      placeholder="Título de la presentación"
+                      value={presTitle}
+                      onInput={(e) => setPresTitle((e.target as HTMLInputElement).value)}
+                    />
+                    <div class={styles.presSection}>
+                      <div class={styles.presSectionTitle}>Imágenes individuales</div>
+                      <div class={styles.presUploadZone}>
+                        <input
+                          type="file"
+                          id="pres-file-input"
+                          class={styles.presFileInput}
+                          accept="image/*"
+                          multiple
+                          onChange={async (e) => {
+                            const files = (e.target as HTMLInputElement).files;
+                            if (!files) return;
+                            setPresProcessing(true);
+                            try {
+                              for (const file of Array.from(files)) {
+                                const compressed = await compressImage(file);
+                                const id = `pres-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                                const dataUrl = URL.createObjectURL(compressed);
+                                setLocalPresImages(prev => [...prev, { id, dataUrl, blob: compressed, name: file.name }]);
+                              }
+                            } catch (err) {
+                              console.error('Error al procesar imágenes:', err);
+                            } finally {
+                              setPresProcessing(false);
+                              (e.target as HTMLInputElement).value = '';
+                            }
+                          }}
+                        />
+                        <label for="pres-file-input" class={styles.presFileLabel}>
+                          <ImageIcon size={24} />
+                          <span>Seleccionar imágenes</span>
+                          <span class={styles.presFileHint}>JPG, PNG, WEBP</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class={styles.presSection}>
+                      <div class={styles.presSectionTitle}>Desde PowerPoint</div>
+                      <div class={styles.presConvertioRow}>
+                        <a href="https://convertio.co/es/pptx-png/" target="_blank" rel="noopener noreferrer" class={styles.presConvertioBtn}>
+                          Convertir PPTX a PNG en Convertio
+                        </a>
+                        <button class={styles.presConvertioBtn} onClick={() => document.getElementById('pres-zip-input')?.click()}>
+                          Subir archivo ZIP
+                        </button>
+                      </div>
+                      <input
+                        type="file"
+                        id="pres-zip-input"
+                        style="display:none"
+                        accept=".zip"
+                        onChange={async (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (!file) return;
+                          if (!/\.(png|jpe?g|webp)\.zip$/i.test(file.name)) {
+                            console.error('El archivo debe ser un ZIP generado por Convertio (.png.zip, .jpg.zip, .webp.zip)');
+                            (e.target as HTMLInputElement).value = '';
+                            return;
+                          }
+                          setPresProcessing(true);
+                          try {
+                            const title = file.name.replace(/\.(png|jpe?g|webp)\.zip$/i, '').replace(/-/g, ' ');
+                            setPresTitle(title);
+                            const images = await extractZipImages(file);
+                            const compressed = await Promise.all(images.map(async (img) => {
+                              const blob = await compressImage(img.blob);
+                              return { ...img, blob, dataUrl: URL.createObjectURL(blob) };
+                            }));
+                            setLocalPresImages(prev => [...prev, ...compressed]);
+                          } catch (err) {
+                            console.error('Error al procesar el ZIP:', err);
+                          } finally {
+                            setPresProcessing(false);
+                            (e.target as HTMLInputElement).value = '';
+                          }
+                        }}
+                      />
+                    </div>
+                    {presProcessing && <p class={styles.presProcessing}>Procesando...</p>}
+                    {localPresImages.length > 0 && (
+                      <div class={styles.presPreviewGrid}>
+                        {localPresImages.map((img, idx) => (
+                          <div key={img.id} class={styles.presPreviewItem}>
+                            <img src={img.dataUrl} alt={img.name} class={styles.presThumb} />
+                            <div class={styles.presThumbOverlay}>
+                              <button
+                                class={styles.presThumbBtn}
+                                disabled={idx === 0}
+                                onClick={() => setLocalPresImages(prev => {
+                                  const next = [...prev];
+                                  [next[idx], next[idx - 1]] = [next[idx - 1], next[idx]];
+                                  return next;
+                                })}
+                              >
+                                <ChevronUpIcon size={14} />
+                              </button>
+                              <button
+                                class={styles.presThumbBtn}
+                                disabled={idx === localPresImages.length - 1}
+                                onClick={() => setLocalPresImages(prev => {
+                                  const next = [...prev];
+                                  [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+                                  return next;
+                                })}
+                              >
+                                <ChevronDownIcon size={14} />
+                              </button>
+                              <button
+                                class={styles.presThumbBtn}
+                                onClick={() => {
+                                  URL.revokeObjectURL(img.dataUrl);
+                                  setLocalPresImages(prev => prev.filter(p => p.id !== img.id));
+                                }}
+                              >
+                                <DeleteIcon size={14} />
+                              </button>
+                            </div>
+                            <span class={styles.presThumbName}>{idx + 1}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {localPresImages.length === 0 && !presProcessing && (
+                      <p class={styles.presEmptyHint}>Selecciona imágenes o un archivo ZIP de Convertio</p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            <button class={`${styles.confirmAddBtn} ${styles[color]}`} onClick={addSlide} disabled={addTab === 'presentation' && (!user || localPresImages.length === 0 || presUploading)}>
+              {presUploading ? 'Subiendo...' : 'Agregar'}
             </button>
           </div>
         )}
@@ -726,5 +927,6 @@ function slideTypeLabel(type: WorshipSlideType): string {
     case 'hymn': return 'Himno';
     case 'user-song': return 'Mi canto';
     case 'bible-reading': return 'Lectura';
+    case 'presentation': return 'Presentación';
   }
 }
