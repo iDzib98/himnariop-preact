@@ -1,14 +1,15 @@
 import { useState, useEffect, useMemo } from 'preact/hooks';
 import { useFavorites } from '../../hooks/useFavorites';
+import { useUserSongFavorites, useFavoriteUserSongs } from '../../hooks/useUserSongFavorites';
 import { useSettings } from '../../hooks/useSettings';
 import { fetchHimnos } from '../../services/api';
 import { storage } from '../../services/storage';
 import { getBookById } from '../../data/books';
 import type { Himno } from '../../types/himno';
-import { StarFilledIcon, DeleteIcon, BibleIcon, SearchIcon, CloseIcon } from '../ui/Icons';
+import { StarFilledIcon, DeleteIcon, BibleIcon, SearchIcon, CloseIcon, MusicNoteIcon } from '../ui/Icons';
 import styles from './FavoritesView.module.css';
 
-type Filter = 'himnos' | 'biblia' | 'todos';
+type Filter = 'himnos' | 'biblia' | 'cantos' | 'todos';
 
 interface FavoritesViewProps {
   onNavigate: (path: string) => void;
@@ -17,7 +18,9 @@ interface FavoritesViewProps {
 }
 
 export function FavoritesView({ onNavigate, searchQuery, onSearchChange }: FavoritesViewProps) {
-  const { favorites, clearFavorites } = useFavorites();
+  const { favorites: hymnFavorites, clearFavorites: clearHymnFavorites } = useFavorites();
+  const { clearFavorites: clearSongFavorites } = useUserSongFavorites();
+  const { songs: favoriteSongs } = useFavoriteUserSongs();
   const { color, theme } = useSettings();
   const [himnos, setHimnos] = useState<Himno[]>([]);
   const [filter, setFilter] = useState<Filter>('todos');
@@ -30,7 +33,7 @@ export function FavoritesView({ onNavigate, searchQuery, onSearchChange }: Favor
     fetchHimnos().then(setHimnos).catch(console.error);
   }, []);
 
-  const favoriteHimnos = favorites
+  const favoriteHimnos = hymnFavorites
     .map(num => himnos.find(h => h && h.numero === num))
     .filter((h): h is Himno => h != null);
 
@@ -46,6 +49,7 @@ export function FavoritesView({ onNavigate, searchQuery, onSearchChange }: Favor
 
   const showHimnos = filter === 'himnos' || filter === 'todos';
   const showBiblia = filter === 'biblia' || filter === 'todos';
+  const showCantos = filter === 'cantos' || filter === 'todos';
 
   const filteredFavoriteHimnos = searchQuery
     ? favoriteHimnos.filter(h =>
@@ -59,17 +63,27 @@ export function FavoritesView({ onNavigate, searchQuery, onSearchChange }: Favor
       )
     : parsedBibleFavs;
 
+  const filteredFavoriteSongs = searchQuery
+    ? favoriteSongs.filter(s =>
+        s.titulo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(normalizedQuery)
+      )
+    : favoriteSongs;
+
   const hasHimnos = filteredFavoriteHimnos.length > 0;
   const hasBiblia = filteredParsedBibleFavs.length > 0;
-  const isEmpty = !(showHimnos && hasHimnos) && !(showBiblia && hasBiblia);
+  const hasCantos = filteredFavoriteSongs.length > 0;
+  const isEmpty = !(showHimnos && hasHimnos) && !(showBiblia && hasBiblia) && !(showCantos && hasCantos);
 
   const handleClear = () => {
     if (filter === 'biblia') {
       storage.setBibleFavorites([]);
     } else if (filter === 'himnos') {
-      clearFavorites();
+      clearHymnFavorites();
+    } else if (filter === 'cantos') {
+      clearSongFavorites();
     } else {
-      clearFavorites();
+      clearHymnFavorites();
+      clearSongFavorites();
       storage.setBibleFavorites([]);
     }
   };
@@ -121,9 +135,15 @@ export function FavoritesView({ onNavigate, searchQuery, onSearchChange }: Favor
           >
             Biblia
           </button>
+          <button
+            class={`${styles.filterBtn} ${filter === 'cantos' ? styles.filterActive : ''}`}
+            onClick={() => setFilter('cantos')}
+          >
+            Cantos
+          </button>
         </div>
 
-        {searchQuery && !hasHimnos && !hasBiblia ? (
+        {searchQuery && !hasHimnos && !hasBiblia && !hasCantos ? (
           <div class={styles.empty}>
             <p>No se encontraron favoritos para "<strong>{searchQuery}</strong>"</p>
           </div>
@@ -132,20 +152,23 @@ export function FavoritesView({ onNavigate, searchQuery, onSearchChange }: Favor
             <StarFilledIcon size={48} className={styles.emptyIcon} />
             {filter === 'himnos' && <p>No tienes himnos favoritos aún.</p>}
             {filter === 'biblia' && <p>No tienes capítulos favoritos aún.</p>}
+            {filter === 'cantos' && <p>No tienes cantos favoritos aún.</p>}
             {filter === 'todos' && <p>No tienes favoritos aún.</p>}
             <p class={styles.hint}>
               {filter === 'biblia'
                 ? 'Toca el icono de estrella en un capítulo de la biblia para añadirlo a favoritos.'
                 : filter === 'himnos'
                   ? 'Toca el icono de estrella en un himno para añadirlo a favoritos.'
-                  : 'Toca el icono de estrella en un himno o capítulo para añadirlo a favoritos.'}
+                  : filter === 'cantos'
+                    ? 'Toca el icono de estrella en un canto para añadirlo a favoritos.'
+                    : 'Toca el icono de estrella en un himno, capítulo o canto para añadirlo a favoritos.'}
             </p>
           </div>
         ) : (
           <>
             {showHimnos && hasHimnos && (
               <section>
-                {showBiblia && <h2 class={styles.sectionTitle}>Himnos</h2>}
+                <h2 class={styles.sectionTitle}>Himnos</h2>
                 <ul class={styles.list}>
                   {filteredFavoriteHimnos.map(himno => (
                     <li key={himno.numero} class={styles.item}>
@@ -164,7 +187,7 @@ export function FavoritesView({ onNavigate, searchQuery, onSearchChange }: Favor
 
             {showBiblia && hasBiblia && (
               <section>
-                {showHimnos && <h2 class={styles.sectionTitle}>Biblia</h2>}
+                <h2 class={styles.sectionTitle}>Biblia</h2>
                 <ul class={styles.list}>
                   {filteredParsedBibleFavs.map(({ key, book, bookId, chapter }) => (
                     <li key={key} class={styles.item}>
@@ -181,11 +204,30 @@ export function FavoritesView({ onNavigate, searchQuery, onSearchChange }: Favor
               </section>
             )}
 
-            {(filter === 'todos' || (filter === 'himnos' && hasHimnos) || (filter === 'biblia' && hasBiblia)) && (
+            {showCantos && hasCantos && (
+              <section>
+                <h2 class={styles.sectionTitle}>Mis cantos</h2>
+                <ul class={styles.list}>
+                  {filteredFavoriteSongs.map(song => (
+                    <li key={song.id} class={styles.item}>
+                      <button
+                        class={`${styles.itemBtn} ${styles[color]}`}
+                        onClick={() => handleFavNavigate(`canto/${song.id}`)}
+                      >
+                        <MusicNoteIcon size={20} className={styles.musicIcon} />
+                        <span class={styles.itemTitle}>{song.titulo}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {(filter === 'todos' || (filter === 'himnos' && hasHimnos) || (filter === 'biblia' && hasBiblia) || (filter === 'cantos' && hasCantos)) && (
               <div class={styles.footer}>
                 <button class={styles.clearBtn} onClick={handleClear}>
                   <DeleteIcon size={18} />
-                  {filter === 'himnos' ? 'Limpiar himnos' : filter === 'biblia' ? 'Limpiar biblia' : 'Limpiar todos'}
+                  {filter === 'himnos' ? 'Limpiar himnos' : filter === 'biblia' ? 'Limpiar biblia' : filter === 'cantos' ? 'Limpiar cantos' : 'Limpiar todos'}
                 </button>
               </div>
             )}

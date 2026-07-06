@@ -16,6 +16,7 @@ import {
   removeAdmin,
 } from '../../services/churchService';
 import { ChevronLeftIcon, ChurchIcon, GoogleIcon, ShareIcon, CloseIcon } from '../ui/Icons';
+import { PendingSongsView } from '../song/PendingSongsView';
 import { signInWithGoogle } from '../../services/authService';
 import styles from './ChurchManagerView.module.css';
 
@@ -32,6 +33,7 @@ export function ChurchManagerView({ onNavigate, initialJoinCode }: Props) {
   const [showJoin, setShowJoin] = useState(false);
   const [showManage, setShowManage] = useState<string | null>(null);
   const [showShare, setShowShare] = useState<Church | null>(null);
+  const [showPending, setShowPending] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [churchName, setChurchName] = useState('');
   const [churchDesc, setChurchDesc] = useState('');
@@ -211,12 +213,23 @@ export function ChurchManagerView({ onNavigate, initialJoinCode }: Props) {
             {loading ? <p class={styles.loading}>Cargando...</p> : renderChurchList()}
 
             {showManage && renderManagePanel()}
-          </main>
+      </main>
 
-          {showShare && renderShareDialog()}
+      {renderShareDialog()}
+      {showPending && (
+        <div class={styles.overlay} onClick={() => setShowPending(null)}>
+          <div class={styles.dialog} onClick={(e) => e.stopPropagation()} data-theme={theme}>
+            <PendingSongsView
+              churchId={showPending}
+              onNavigate={onNavigate}
+              onClose={() => setShowPending(null)}
+            />
+          </div>
         </div>
-      );
-    }
+      )}
+    </div>
+  );
+}
 
     return (
       <div class={styles.container} data-theme={theme}>
@@ -331,6 +344,13 @@ export function ChurchManagerView({ onNavigate, initialJoinCode }: Props) {
               )}
               {user?.uid !== c.ownerId && (
                 <button class={styles.leaveBtn} onClick={() => handleLeave(c.id)}>Salir</button>
+              )}
+            </div>
+            <div class={styles.churchExtras}>
+              {(user?.uid === c.ownerId || c.adminIds.includes(user?.uid || '')) && (
+                <button class={styles.pendingBtn} onClick={() => setShowPending(c.id)}>
+                  Pendientes
+                </button>
               )}
             </div>
           </div>

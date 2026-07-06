@@ -5,11 +5,12 @@ import { useSettings } from '../../hooks/useSettings';
 import { getBookById, BOOKS } from '../../data/books';
 import { getHimno, fetchHimnos } from '../../services/api';
 import { fetchChapter } from '../../services/bibleApi';
-import type { Himno } from '../../types/himno';
+import type { Himno, UserSong } from '../../types/himno';
 import { getCurrentUser } from '../../services/authService';
 import { saveOrderToCloud } from '../../services/cloudOrdenService';
 import { getUserChurches } from '../../services/churchService';
-import { ChevronUpIcon, ChevronDownIcon, DeleteIcon, PlusIcon, ChevronLeftIcon, ShareIcon } from '../ui/Icons';
+import { getUserSongs } from '../../services/userSongStorage';
+import { ChevronUpIcon, ChevronDownIcon, DeleteIcon, PlusIcon, ChevronLeftIcon, ShareIcon, MusicNoteIcon } from '../ui/Icons';
 import styles from './WorshipOrderEditor.module.css';
 
 interface Props {
@@ -17,7 +18,7 @@ interface Props {
   onNavigate: (path: string) => void;
 }
 
-type SlideTab = 'slide' | 'hymn' | 'bible-reading';
+type SlideTab = 'slide' | 'hymn' | 'bible-reading' | 'user-song';
 
 export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
   const [order, setOrder] = useState<WorshipOrder>(() => {
@@ -34,9 +35,11 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
   const [hymnSearch, setHymnSearch] = useState('');
   const [showHymnDropdown, setShowHymnDropdown] = useState(false);
   const [allHimnos, setAllHimnos] = useState<Himno[]>([]);
+  const [userSongs, setUserSongs] = useState<UserSong[]>([]);
 
   useEffect(() => {
     fetchHimnos().then(setAllHimnos);
+    setUserSongs(getUserSongs());
   }, []);
 
   const normalizedHymnQuery = hymnSearch.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -50,6 +53,14 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
     ));
     return titleMatch || numMatch || lyricMatch;
   }).slice(0, 20);
+
+  const filteredUserSongs = userSongs.filter(s => {
+    const titleMatch = s.titulo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(normalizedHymnQuery);
+    const lyricMatch = s.versos.some(v => v.lineas.some(l =>
+      l.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(normalizedHymnQuery)
+    ));
+    return titleMatch || lyricMatch;
+  }).slice(0, 10);
 
   const highlightMatch = (text: string) => {
     const idx = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').indexOf(normalizedHymnQuery);
@@ -78,7 +89,14 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
 
   const selectHymn = (h: Himno) => {
     setHymnInput(String(h.numero));
-    setHymnPreview(h);
+    setHymnPreview(h as any);
+    setHymnSearch('');
+    setShowHymnDropdown(false);
+  };
+
+  const selectUserSong = (s: UserSong) => {
+    setHymnPreview(s as any);
+    setHymnInput(s.titulo);
     setHymnSearch('');
     setShowHymnDropdown(false);
   };
@@ -224,9 +242,17 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
         slide.posture = newPosture;
         break;
       case 'hymn': {
-        const num = hymnPreview ? hymnPreview.numero : parseInt(hymnInput, 10);
+        const num = hymnPreview && 'numero' in hymnPreview ? (hymnPreview as Himno).numero : parseInt(hymnInput, 10);
         if (!num || isNaN(num)) return;
         slide.hymnNumber = num;
+        slide.posture = newPosture;
+        break;
+      }
+      case 'user-song': {
+        const userSong = hymnPreview as unknown as UserSong;
+        if (!userSong || !userSong.id) return;
+        slide.userSongId = userSong.id;
+        slide.title = userSong.titulo;
         slide.posture = newPosture;
         break;
       }
@@ -422,6 +448,17 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
                     )}
                   </>
                 )}
+                {slide.type === 'user-song' && (
+                  <>
+                    <MusicNoteIcon size={16} />
+                    <span>{slide.title || 'Canto personalizado'}</span>
+                    {slide.posture && (
+                      <span class={styles.postureBadge}>
+                        {slide.posture === 'standing' ? 'DE PIE' : 'SENTADOS'}
+                      </span>
+                    )}
+                  </>
+                )}
                 {slide.type === 'bible-reading' && (
                   <>
                     <span>{getBookById(slide.bookId || '')?.nombre || slide.bookId} {slide.chapter}
@@ -446,13 +483,13 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
         {addTab && (
           <div class={styles.addForm}>
             <div class={styles.addFormTabs}>
-              {(['slide', 'hymn', 'bible-reading'] as SlideTab[]).map(tab => (
+              {(['slide', 'hymn', 'user-song', 'bible-reading'] as SlideTab[]).map(tab => (
                 <button
                   key={tab}
                   class={`${styles.addFormTab} ${addTab === tab ? styles.activeTab : ''} ${styles[color]}`}
                   onClick={() => setAddTab(tab)}
                 >
-                  {tab === 'slide' ? 'Título' : tab === 'hymn' ? 'Himno' : 'Lectura'}
+                  {tab === 'slide' ? 'Título' : tab === 'hymn' ? 'Himno' : tab === 'user-song' ? 'Mi canto' : 'Lectura'}
                 </button>
               ))}
             </div>
@@ -515,6 +552,50 @@ export function WorshipOrderEditor({ orderId, onNavigate }: Props) {
                   </label>
                   <label>
                     <input type="radio" name="hymnPosture" checked={newPosture === 'standing'}
+                      onChange={() => setNewPosture('standing')} /> De pie
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {addTab === 'user-song' && (
+              <div class={styles.addFormBody}>
+                <div class={styles.autocompleteWrapper}>
+                  <input class={styles.input} placeholder="Buscar en Mis cantos..." value={hymnSearch}
+                    onInput={(e) => { setHymnSearch((e.target as HTMLInputElement).value); setShowHymnDropdown(true); }}
+                    onFocus={() => setShowHymnDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowHymnDropdown(false), 200)} />
+                  {showHymnDropdown && hymnSearch && filteredUserSongs.length > 0 && (
+                    <div class={styles.autocompleteDropdown}>
+                      {filteredUserSongs.map(s => (
+                        <button key={s.id} class={styles.autocompleteItem}
+                          onMouseDown={() => selectUserSong(s)}>
+                          <MusicNoteIcon size={14} />
+                          <strong>{highlightMatch(s.titulo)}</strong>
+                          <span class={styles.songAuthorBadge}>{s.autores[0] || ''}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {showHymnDropdown && hymnSearch && filteredUserSongs.length === 0 && filteredHimnos.length === 0 && (
+                    <div class={styles.autocompleteDropdown}>
+                      <span class={styles.autocompleteEmpty}>Sin resultados</span>
+                    </div>
+                  )}
+                </div>
+                {hymnPreview && (
+                  <div class={styles.hymnPreview}>
+                    <strong>{hymnPreview.titulo}</strong>
+                    <p class={styles.hymnPreviewVerses}>{hymnPreview.versos.length} verso(s)</p>
+                  </div>
+                )}
+                <div class={styles.postureToggle}>
+                  <label>
+                    <input type="radio" name="userSongPosture" checked={newPosture === 'sitting'}
+                      onChange={() => setNewPosture('sitting')} /> Sentados
+                  </label>
+                  <label>
+                    <input type="radio" name="userSongPosture" checked={newPosture === 'standing'}
                       onChange={() => setNewPosture('standing')} /> De pie
                   </label>
                 </div>
@@ -643,6 +724,7 @@ function slideTypeLabel(type: WorshipSlideType): string {
   switch (type) {
     case 'slide': return 'Título';
     case 'hymn': return 'Himno';
+    case 'user-song': return 'Mi canto';
     case 'bible-reading': return 'Lectura';
   }
 }

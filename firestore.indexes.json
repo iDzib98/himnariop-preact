@@ -1,0 +1,33 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "canciones",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "approvedChurches",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "updatedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "canciones",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "pendingChurches",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "updatedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

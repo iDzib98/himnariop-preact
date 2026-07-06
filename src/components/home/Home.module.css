@@ -266,6 +266,21 @@
   font-size: 0.875em;
 }
 
+.countBadge {
+  margin-right: var(--space-sm);
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  background-color: rgba(255, 255, 255, 0.25);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .chevron {
   transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -403,6 +418,115 @@
   .main {
     max-width: 1100px;
   }
+}
+
+.songCard {
+  gap: var(--space-xs);
+}
+
+.songIcon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.userSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid var(--primary);
+}
+
+.userSectionIcon {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.userSectionHeader .categoryTitle {
+  flex: 1;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.addSongBtn {
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-full);
+  color: var(--primary);
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  transition: all var(--transition-fast);
+}
+
+.addSongBtn:hover {
+  background: var(--surface);
+  border-color: var(--primary);
+}
+
+.sourceBadge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  background: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.emptySongs {
+  text-align: center;
+  padding: var(--space-lg);
+  color: var(--text-secondary);
+}
+
+.emptySongs p {
+  margin: 0 0 var(--space-md);
+  font-size: 14px;
+}
+
+.emptyText {
+  text-align: center;
+  padding: var(--space-md);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.helperText {
+  text-align: center;
+  padding: var(--space-lg);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.emptySongs .addSongBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.resultBadge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+  margin-right: var(--space-sm);
 }
 
 /* Colors */

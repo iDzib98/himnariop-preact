@@ -14,6 +14,9 @@ import { WorshipOrderHome } from './components/orden/WorshipOrderHome';
 import { WorshipOrderView } from './components/orden/WorshipOrderView';
 import { WorshipOrderEditor } from './components/orden/WorshipOrderEditor';
 import { ChurchManagerView } from './components/orden/ChurchManagerView';
+import { SongEditor } from './components/song/SongEditor';
+import { UserSongView } from './components/song/UserSongView';
+import { UserSongTv } from './components/song/UserSongTv';
 import { UpdateDialog } from './components/update/UpdateDialog';
 import { getReturnTo, setReturnTo } from './services/ordenStorage';
 import { hasNewVersion } from './services/versionService';
@@ -22,7 +25,7 @@ import './styles/reset.css';
 import './styles/variables.css';
 
 export function App() {
-  const { navigate, section, hymnNumber, bibleBook, bibleChapter, bibleStartVerse, bibleEndVerse, ordenId, ordenEditing, showIglesias, joinChurchCode } = useHashRoute();
+  const { navigate, section, hymnNumber, bibleBook, bibleChapter, bibleStartVerse, bibleEndVerse, ordenId, ordenEditing, showIglesias, joinChurchCode, songId, songTv, songEditing } = useHashRoute();
   const { theme, fontFamily, fontSize, color } = useSettings();
 
   const [himnarioSearch, setHimnarioSearch] = useState('');
@@ -161,6 +164,18 @@ export function App() {
       case 'configuracion':
         return <SettingsView onNavigate={handleNavigate} searchQuery={configuracionSearch} />;
 
+      case 'canto':
+        if (songTv && songId) {
+          return <UserSongTvWrapper songId={songId} navigate={handleNavigate} />;
+        }
+        if (songEditing && songId) {
+          return <SongEditor songId={songId} onNavigate={handleNavigate} />;
+        }
+        if (songId && songId !== 'nuevo') {
+          return <UserSongView songId={songId} onNavigate={handleNavigate} />;
+        }
+        return <SongEditor songId="nuevo" onNavigate={handleNavigate} />;
+
       case 'himnario':
       default:
         if (hymnNumber !== null) {
@@ -177,12 +192,13 @@ export function App() {
             searchQuery={himnarioSearch}
             onSearchChange={setHimnarioSearch}
             onNavigate={handleNavigateNumber}
+            navigate={handleNavigate}
           />
         );
     }
   };
 
-  const hideNav = (section === 'himnario' && hymnNumber !== null) || (section === 'biblia' && bibleBook && bibleChapter) || (section === 'orden' && !!ordenId);
+  const hideNav = (section === 'himnario' && hymnNumber !== null) || (section === 'biblia' && bibleBook && bibleChapter) || (section === 'orden' && !!ordenId) || (section === 'canto' && !!songId);
 
   return (
     <>
@@ -197,5 +213,40 @@ export function App() {
       {renderContent()}
       {showUpdate && <UpdateDialog onClose={() => setShowUpdate(false)} />}
     </>
+  );
+}
+
+function UserSongTvWrapper({ songId, navigate }: { songId: string; navigate: (path: string) => void }) {
+  const [songData, setSongData] = useState<import('./types/himno').UserSong | null>(null);
+  const { color, theme } = useSettings();
+
+  useEffect(() => {
+    import('./services/userSongStorage').then(({ getUserSong }) => {
+      const local = getUserSong(songId);
+      if (local) {
+        setSongData(local);
+        return;
+      }
+      import('./services/cloudSongService').then(({ getCloudSong }) => {
+        getCloudSong(songId).then(setSongData);
+      });
+    });
+  }, [songId]);
+
+  if (!songData) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--background)', color: 'var(--on-background)' }}>
+        Cargando...
+      </div>
+    );
+  }
+
+  return (
+    <UserSongTv
+      song={songData}
+      onClose={() => navigate(`canto/${songId}`)}
+      color={color}
+      theme={theme}
+    />
   );
 }

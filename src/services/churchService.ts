@@ -11,6 +11,7 @@ import {
   arrayRemove,
   Timestamp,
   limit,
+  QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { getFirebaseDb } from './firebase';
 import type { Church } from '../types/orden';
@@ -114,13 +115,30 @@ export async function removeAdmin(code: string, adminId: string): Promise<void> 
 
 export async function getUserChurches(uid: string): Promise<Church[]> {
   const db = getFirebaseDb();
-  const q = query(
+
+  const memberQuery = query(
     collection(db, 'iglesias'),
     where('memberIds', 'array-contains', uid),
     limit(50)
   );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => toChurch(d.id, d.data()));
+  const memberSnap = await getDocs(memberQuery);
+
+  const adminQuery = query(
+    collection(db, 'iglesias'),
+    where('adminIds', 'array-contains', uid),
+    limit(50)
+  );
+  const adminSnap = await getDocs(adminQuery);
+
+  const allDocs = [...memberSnap.docs, ...adminSnap.docs];
+  const unique = allDocs.reduce((acc, doc) => {
+    if (!acc.find(d => d.id === doc.id)) {
+      acc.push(doc);
+    }
+    return acc;
+  }, [] as QueryDocumentSnapshot[]);
+
+  return unique.map(d => toChurch(d.id, d.data()));
 }
 
 export function getLocalChurchIds(): string[] {

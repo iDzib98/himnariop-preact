@@ -4,12 +4,14 @@ import type { WorshipOrder, WorshipSlide } from '../../types/orden';
 import { useSettings } from '../../hooks/useSettings';
 import { getBookById } from '../../data/books';
 import { getHimno } from '../../services/api';
-import type { Himno } from '../../types/himno';
+import type { Himno, UserSong } from '../../types/himno';
+import { getUserSong } from '../../services/userSongStorage';
+import { getCloudSong } from '../../services/cloudSongService';
 import { getFirebaseDb } from '../../services/firebase';
 import { getCurrentUser } from '../../services/authService';
 import { getChurch, getLocalChurchIds } from '../../services/churchService';
 import { doc, getDoc } from 'firebase/firestore';
-import { ChevronLeftIcon, TvIcon, PrintIcon, PersonIcon, StandingIcon, GroupIcon, SittingIcon, ShareIcon } from '../ui/Icons';
+import { ChevronLeftIcon, TvIcon, PrintIcon, PersonIcon, StandingIcon, GroupIcon, SittingIcon, ShareIcon, MusicNoteIcon } from '../ui/Icons';
 import { WorshipOrderTv } from './WorshipOrderTv';
 import { ShareDialog } from './ShareDialog';
 import styles from './WorshipOrderView.module.css';
@@ -44,6 +46,7 @@ export function WorshipOrderView({ orderId, onNavigate }: Props) {
   const [loading, setLoading] = useState(true);
   const [accessError, setAccessError] = useState('');
   const [hymnCache, setHymnCache] = useState<Record<number, Himno>>({});
+  const [userSongCache, setUserSongCache] = useState<Record<string, UserSong>>({});
   const [showTv, setShowTv] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const { color, theme } = useSettings();
@@ -106,6 +109,20 @@ export function WorshipOrderView({ orderId, onNavigate }: Props) {
         });
       }
     }
+    const userSongSlides = order.slides.filter(s => s.type === 'user-song');
+    for (const slide of userSongSlides) {
+      const id = slide.userSongId!;
+      if (!userSongCache[id]) {
+        const local = getUserSong(id);
+        if (local) {
+          setUserSongCache(prev => ({ ...prev, [id]: local }));
+        } else {
+          getCloudSong(id).then(s => {
+            if (s) setUserSongCache(prev => ({ ...prev, [id]: s }));
+          });
+        }
+      }
+    }
   }, [order]);
 
   const navigateWithReturn = (path: string) => {
@@ -162,6 +179,7 @@ export function WorshipOrderView({ orderId, onNavigate }: Props) {
       <WorshipOrderTv
         order={order}
         hymnCache={hymnCache}
+        userSongCache={userSongCache}
         onClose={() => setShowTv(false)}
         theme={theme}
         color={color}
@@ -199,10 +217,11 @@ export function WorshipOrderView({ orderId, onNavigate }: Props) {
 
       <main class={styles.main}>
         {order.slides.map(slide => (
-          <SlideCard
+            <SlideCard
             key={slide.id}
             slide={slide}
             hymnCache={hymnCache}
+            userSongCache={userSongCache}
             onNavigate={navigateWithReturn}
             color={color}
           />
@@ -221,9 +240,10 @@ export function WorshipOrderView({ orderId, onNavigate }: Props) {
   );
 }
 
-function SlideCard({ slide, hymnCache, onNavigate, color: _color }: {
+function SlideCard({ slide, hymnCache, userSongCache, onNavigate, color: _color }: {
   slide: WorshipSlide;
   hymnCache: Record<number, Himno>;
+  userSongCache: Record<string, UserSong>;
   onNavigate: (path: string) => void;
   color: string;
 }) {
@@ -252,6 +272,26 @@ function SlideCard({ slide, hymnCache, onNavigate, color: _color }: {
           <div class={styles.slideLabel}>HIMNO</div>
           <h2 class={styles.slideTitle}>Himno {slide.hymnNumber}{hymn ? `. ${hymn.titulo}` : ''}</h2>
           {!hymn && <p class={styles.hint}>Cargando...</p>}
+          {slide.posture && (
+            <span class={`${styles.outlinedBadge} ${slide.posture === 'standing' ? styles.standingOutline : styles.sittingOutline}`}>
+              {slide.posture === 'standing' ? <StandingIcon size={16} /> : <SittingIcon size={16} />}
+              <span class={styles.badgeLabel}>{slide.posture === 'standing' ? 'De pie' : 'Sentado'}</span>
+            </span>
+          )}
+        </div>
+      );
+    }
+
+    case 'user-song': {
+      const userSong = userSongCache[slide.userSongId!];
+      return (
+        <div
+          class={`${styles.slideCard} ${styles.clickable}`}
+          onClick={() => onNavigate(`canto/${slide.userSongId}`)}
+        >
+          <div class={styles.slideLabel}><MusicNoteIcon size={14} /> MI CANTO</div>
+          <h2 class={styles.slideTitle}>{slide.title || userSong?.titulo || 'Canto personalizado'}</h2>
+          {!userSong && <p class={styles.hint}>Cargando...</p>}
           {slide.posture && (
             <span class={`${styles.outlinedBadge} ${slide.posture === 'standing' ? styles.standingOutline : styles.sittingOutline}`}>
               {slide.posture === 'standing' ? <StandingIcon size={16} /> : <SittingIcon size={16} />}

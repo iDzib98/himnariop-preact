@@ -1,0 +1,124 @@
+.container {
+  padding: 24px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--primary);
+  padding: 4px;
+  display: flex;
+}
+
+.title {
+  font-size: 20px;
+  margin: 0;
+  flex: 1;
+}
+
+.churchName {
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--surface);
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+.body {
+  min-height: 200px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 40px 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.cardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cardTitle {
+  font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardAuthor {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.cardDate {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.cardActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.approveBtn,
+.rejectBtn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.approveBtn {
+  background: var(--color-green);
+  color: #fff;
+}
+
+.rejectBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.approveBtn:hover {
+  filter: brightness(1.1);
+}
+
+.rejectBtn:hover {
+  border-color: var(--error);
+  color: var(--error);
+}

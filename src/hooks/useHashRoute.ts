@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'preact/hooks';
 
-export type Section = 'himnario' | 'biblia' | 'orden' | 'favoritos' | 'configuracion';
+export type Section = 'himnario' | 'biblia' | 'orden' | 'favoritos' | 'configuracion' | 'canto';
 
 export function useHashRoute() {
   const [route, setRoute] = useState<string>(() => {
@@ -28,19 +28,20 @@ export function useHashRoute() {
   const baseRoute = parts[0];
 
   const hymnNumber = (() => {
-    if (baseRoute === 'home' || baseRoute === 'biblia' || baseRoute === 'orden' || baseRoute === 'favoritos' || baseRoute === 'configuracion') return null;
+    if (baseRoute === 'home' || baseRoute === 'biblia' || baseRoute === 'orden' || baseRoute === 'favoritos' || baseRoute === 'configuracion' || baseRoute === 'canto') return null;
     const num = parseInt(baseRoute, 10);
     if (!isNaN(num) && num >= 1 && num <= 706) return num;
     return null;
   })();
 
-  const isHome = baseRoute === 'home' || baseRoute === '' || (hymnNumber === null && baseRoute !== 'biblia' && baseRoute !== 'orden' && baseRoute !== 'favoritos' && baseRoute !== 'configuracion');
+  const isHome = baseRoute === 'home' || baseRoute === '' || (hymnNumber === null && baseRoute !== 'biblia' && baseRoute !== 'orden' && baseRoute !== 'favoritos' && baseRoute !== 'configuracion' && baseRoute !== 'canto');
 
   const section: Section = (() => {
     if (baseRoute === 'biblia') return 'biblia';
     if (baseRoute === 'orden') return 'orden';
     if (baseRoute === 'favoritos') return 'favoritos';
     if (baseRoute === 'configuracion') return 'configuracion';
+    if (baseRoute === 'canto') return 'canto';
     return 'himnario';
   })();
 
@@ -53,6 +54,10 @@ export function useHashRoute() {
   const ordenEditing = section === 'orden' && !!ordenId && parts.length >= 3 && parts[2] === 'editar';
   const showIglesias = section === 'orden' && parts.length >= 2 && parts[1] === 'iglesias';
   const joinChurchCode = section === 'orden' && showIglesias && parts.length >= 4 && parts[2] === 'unirse' ? parts[3] : undefined;
+
+  const songId = section === 'canto' && parts.length >= 2 ? parts[1] : undefined;
+  const songTv = section === 'canto' && songId && parts.length >= 3 && parts[2] === 'tv';
+  const songEditing = section === 'canto' && songId && parts.length >= 3 && parts[2] === 'editar';
 
   return {
     route,
@@ -68,5 +73,8 @@ export function useHashRoute() {
     ordenEditing,
     showIglesias,
     joinChurchCode,
+    songId,
+    songTv,
+    songEditing,
   };
 }

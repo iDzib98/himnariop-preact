@@ -140,6 +140,11 @@
   opacity: 0.7;
 }
 
+.musicIcon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
 .itemTitle {
   flex: 1;
   white-space: nowrap;

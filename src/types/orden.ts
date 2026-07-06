@@ -1,4 +1,4 @@
-export type WorshipSlideType = 'slide' | 'hymn' | 'bible-reading';
+export type WorshipSlideType = 'slide' | 'hymn' | 'bible-reading' | 'user-song';
 export type Posture = 'standing' | 'sitting';
 export type ReadingFlow = 'pulpit' | 'congregation' | 'together' | 'antiphonal';
 export interface WorshipSlide {
@@ -8,6 +8,7 @@ export interface WorshipSlide {
   subtitle?: string;
   posture?: Posture;
   hymnNumber?: number;
+  userSongId?: string;
   bookId?: string;
   chapter?: number;
   startVerse?: number;

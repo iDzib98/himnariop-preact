@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'preact/hooks';
 import type { JSX } from 'preact';
 import type { WorshipOrder, WorshipSlide, ReadingFlow } from '../../types/orden';
-import type { Himno } from '../../types/himno';
+import type { Himno, UserSong } from '../../types/himno';
 import type { BibleVerse } from '../../services/bibleApi';
 import { getHimno } from '../../services/api';
 import { fetchChapter } from '../../services/bibleApi';
+import { getCloudSong } from '../../services/cloudSongService';
+import { getUserSong } from '../../services/userSongStorage';
 import { getBookById } from '../../data/books';
 import { ChevronUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, PersonIcon, StandingIcon, GroupIcon, SittingIcon, PlayIcon, PauseIcon, StopIcon } from '../ui/Icons';
 import { useAudio, type PlaybackSpeed } from '../../hooks/useAudio';
@@ -68,6 +70,7 @@ interface VerseSlide {
 interface Props {
   order: WorshipOrder;
   hymnCache: Record<number, Himno>;
+  userSongCache?: Record<string, UserSong>;
   onClose: () => void;
   theme: string;
   color: string;
@@ -166,7 +169,7 @@ function renderSubContent(vs: VerseSlide, subIdx: number, total: number, color: 
   );
 }
 
-export function WorshipOrderTv({ order, hymnCache, onClose, theme, color }: Props) {
+export function WorshipOrderTv({ order, hymnCache, userSongCache = {}, onClose, theme, color }: Props) {
   const [verseSlides, setVerseSlides] = useState<VerseSlide[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentSubSlide, setCurrentSubSlide] = useState(0);
@@ -260,6 +263,29 @@ export function WorshipOrderTv({ order, hymnCache, onClose, theme, color }: Prop
             title: hymn ? `Himno ${num}. ${hymn.titulo}` : `Himno ${num}`,
             slide,
             hymn,
+          });
+          break;
+        }
+
+        case 'user-song': {
+          const songId = slide.userSongId!;
+          let userSong: UserSong | undefined = userSongCache?.[songId];
+          if (!userSong) {
+            const local = getUserSong(songId);
+            if (local) {
+              userSong = local;
+            } else {
+              try { userSong = await getCloudSong(songId) || undefined; } catch {}
+            }
+          }
+          const verses = userSong
+            ? userSong.versos.map(v => `${v.nombre}\n${v.lineas.join('\n')}`)
+            : [];
+          results.push({
+            verses,
+            title: userSong ? userSong.titulo : (slide.title || 'Canto'),
+            slide,
+            hymn: undefined,
           });
           break;
         }
@@ -487,6 +513,7 @@ export function WorshipOrderTv({ order, hymnCache, onClose, theme, color }: Prop
         </div>
       )}
 
+
       <div class={`${styles.rightNav} ${uiVisible ? '' : styles.hidden}`}>
         <button class={styles.navArrow} onClick={(e) => { e.stopPropagation(); goPrevSlide(); }} disabled={currentSlide === 0}>
           <ChevronUpIcon size={22} />
@@ -520,7 +547,13 @@ export function WorshipOrderTv({ order, hymnCache, onClose, theme, color }: Prop
                     : currentSubSlide === totalSubSlides - 1
                       ? 'Créditos'
                       : `Verso ${currentSubSlide}`
-                  : currentSubSlide > 0
+                  : vs.slide.type === 'user-song'
+                    ? currentSubSlide === 0
+                      ? `${vs.title}`
+                      : currentSubSlide === totalSubSlides - 1
+                        ? 'Créditos'
+                        : `Verso ${currentSubSlide}`
+                    : currentSubSlide > 0
                     ? `${currentSubSlide} / ${totalSubSlides - 1}`
                     : `${totalSubSlides - 1} verso${totalSubSlides - 1 !== 1 ? 's' : ''}`
               }

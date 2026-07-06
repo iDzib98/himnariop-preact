@@ -19,6 +19,27 @@ service cloud.firestore {
             || request.auth.uid in resource.data.adminIds);
       allow delete: if request.auth != null
         && resource.data.ownerId == request.auth.uid;
+
+      match /pendingSongs/{songId} {
+        allow read: if request.auth != null
+          && (request.auth.uid in resource.data.adminIds
+              || request.auth.uid == resource.data.ownerId
+              || get(/databases/$(database)/documents/iglesias/$(code)).data.adminIds.hasAny([request.auth.uid])
+              || get(/databases/$(database)/documents/iglesias/$(code)).data.ownerId == request.auth.uid);
+        allow create: if request.auth != null;
+        allow delete: if request.auth != null
+          && (get(/databases/$(database)/documents/iglesias/$(code)).data.adminIds.hasAny([request.auth.uid])
+              || get(/databases/$(database)/documents/iglesias/$(code)).data.ownerId == request.auth.uid);
+      }
+    }
+
+    match /canciones/{songId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null
+        && (request.auth.uid == resource.data.ownerId);
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.ownerId;
     }
 
     match /{document=**} {

@@ -23,6 +23,24 @@ export interface Grupo {
   fin: number;
 }
 
+export interface UserSong {
+  id: string;
+  titulo: string;
+  intro: string;
+  referencias: string[];
+  autores: string[];
+  versos: Verso[];
+  ownerId: string;
+  ownerName: string;
+  createdAt: number;
+  updatedAt: number;
+  pdfUrl?: string;
+  audioUrl?: string;
+  isPublic: boolean;
+  approvedChurches: string[];
+  pendingChurches: string[];
+}
+
 export type ColorOption =
   | 'black'
   | 'red'
