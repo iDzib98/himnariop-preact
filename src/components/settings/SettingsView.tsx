@@ -4,7 +4,7 @@ import { useSettings } from '../../hooks/useSettings';
 import type { ColorOption, FontSize, FontFamily, Theme } from '../../types/himno';
 import { BIBLE_VERSIONS } from '../../data/bibleVersions';
 import { CHANGELOG, APP_VERSION } from '../../data/changelog';
-import { ChevronLeftIcon, GoogleIcon, ChurchIcon } from '../ui/Icons';
+import { ChevronLeftIcon, GoogleIcon, ChurchIcon, CopyIcon } from '../ui/Icons';
 import { signInWithGoogle, signOut, getCurrentUser, onAuthChange } from '../../services/authService';
 import styles from './SettingsView.module.css';
 
@@ -69,6 +69,7 @@ export function SettingsView({ onNavigate, searchQuery = '' }: SettingsViewProps
   const [tempFontSize, setTempFontSize] = useState(fontSizeValue);
   const [isLargeFont, setIsLargeFont] = useState(false);
   const [user, setUser] = useState(getCurrentUser());
+  const [uidCopied, setUidCopied] = useState(false);
 
   useEffect(() => {
     return onAuthChange((u) => {
@@ -221,6 +222,19 @@ export function SettingsView({ onNavigate, searchQuery = '' }: SettingsViewProps
                     <p class={styles.userName}>{user.displayName || 'Usuario'}</p>
                     <p class={styles.userEmail}>{user.email}</p>
                   </div>
+                </div>
+                <div class={styles.uidRow}>
+                  <span class={styles.uidLabel}>UID:</span>
+                  <code class={styles.uidValue}>{user.uid}</code>
+                  <button class={styles.uidCopyBtn} onClick={() => {
+                    navigator.clipboard.writeText(user.uid).then(() => {
+                      setUidCopied(true);
+                      setTimeout(() => setUidCopied(false), 2000);
+                    });
+                  }} title="Copiar UID">
+                    <CopyIcon size={16} />
+                    {uidCopied && <span class={styles.uidCopiedHint}>Copiado</span>}
+                  </button>
                 </div>
                 <button class={styles.secondaryBtn} onClick={() => signOut()}>
                   Cerrar sesión

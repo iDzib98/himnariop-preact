@@ -255,6 +255,17 @@ export async function getPendingSongsForChurch(
   });
 }
 
+export async function hasPendingSongs(churchId: string): Promise<boolean> {
+  const db = getFirebaseDb();
+  const snap = await getDocs(
+    query(
+      collection(db, 'iglesias', churchId, 'pendingSongs'),
+      limit(1)
+    )
+  );
+  return !snap.empty;
+}
+
 export function isUserChurchAdmin(
   church: { ownerId: string; adminIds: string[] },
   uid: string

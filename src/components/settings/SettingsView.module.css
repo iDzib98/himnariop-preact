@@ -296,6 +296,55 @@
   font-size: 0.85rem;
 }
 
+.uidRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface, rgba(128,128,128,0.08));
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.uidLabel {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.uidValue {
+  font-size: 0.75rem;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--on-background);
+}
+
+.uidCopyBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: none;
+  color: var(--on-background);
+  cursor: pointer;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.uidCopyBtn:hover {
+  background: var(--hover-bg, rgba(128,128,128,0.1));
+}
+
+.uidCopiedHint {
+  font-size: 0.7rem;
+  color: var(--primary, #4caf50);
+  white-space: nowrap;
+}
+
 .churchManageBtn {
   display: flex;
   align-items: center;

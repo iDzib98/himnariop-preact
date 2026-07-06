@@ -19,7 +19,7 @@
 .backBtn {
   background: none;
   border: none;
-  color: var(--on-background);
+  color: #fff;
   cursor: pointer;
   padding: 4px;
   display: flex;
@@ -30,6 +30,7 @@
   font-size: 1.2rem;
   flex: 1;
   margin: 0;
+  color: #fff;
 }
 
 .main {
@@ -202,6 +203,7 @@
 .churchCode {
   font-size: 0.9rem;
   margin: 0 0 4px;
+  opacity: 0.9;
 }
 
 .churchDesc {
@@ -220,15 +222,16 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  align-items: flex-end;
 }
 
 .shareBtn {
   background: none;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(255,255,255,0.3);
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
-  color: var(--on-background);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -256,6 +259,106 @@
   cursor: pointer;
   color: #f44336;
   font-size: 0.85rem;
+}
+
+.menuWrapper {
+  position: relative;
+}
+
+.menuBtn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.menuBtn:hover {
+  background: var(--hover-bg);
+}
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: var(--background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  z-index: 20;
+  min-width: 200px;
+  overflow: hidden;
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  color: var(--on-background);
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.dropdownItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dropdownItem:not(:last-child) {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.editLink {
+  background: none;
+  border: none;
+  color: var(--color-indigo);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 4px 0;
+  text-decoration: underline;
+}
+
+.currentValue {
+  font-size: 0.85rem;
+  margin: 0;
+  color: var(--on-background);
+}
+
+.pendingBtn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 0.85rem;
+  transition: background var(--transition-fast);
+}
+
+.pendingBtn:hover {
+  background: color-mix(in srgb, var(--color-amber) 10%, transparent);
 }
 
 .managePanel {
@@ -426,22 +529,22 @@
 
 /* Color themes */
 .black { background: #000; color: #fff; }
-.red { background: #f44336; }
-.pink { background: #e91e63; }
-.purple { background: #9c27b0; }
-.deep-purple { background: #673ab7; }
-.indigo { background: #3f51b5; }
-.blue { background: #2196f3; }
-.light-blue { background: #03a9f4; }
-.cyan { background: #00bcd4; }
-.teal { background: #009688; }
-.green { background: #4caf50; }
-.light-green { background: #8bc34a; }
-.lime { background: #cddc39; }
-.yellow { background: #ffeb3b; }
-.amber { background: #ffc107; }
-.orange { background: #ff9800; }
-.deep-orange { background: #ff5722; }
-.brown { background: #795548; }
-.grey { background: #9e9e9e; }
-.blue-grey { background: #607d8b; }
+.red { background: #f44336; color: #fff; }
+.pink { background: #e91e63; color: #fff; }
+.purple { background: #9c27b0; color: #fff; }
+.deep-purple { background: #673ab7; color: #fff; }
+.indigo { background: #3f51b5; color: #fff; }
+.blue { background: #2196f3; color: #fff; }
+.light-blue { background: #03a9f4; color: #fff; }
+.cyan { background: #00bcd4; color: #fff; }
+.teal { background: #009688; color: #fff; }
+.green { background: #4caf50; color: #fff; }
+.light-green { background: #8bc34a; color: #fff; }
+.lime { background: #cddc39; color: #fff; }
+.yellow { background: #ffeb3b; color: #fff; }
+.amber { background: #ffc107; color: #fff; }
+.orange { background: #ff9800; color: #fff; }
+.deep-orange { background: #ff5722; color: #fff; }
+.brown { background: #795548; color: #fff; }
+.grey { background: #9e9e9e; color: #fff; }
+.blue-grey { background: #607d8b; color: #fff; }

@@ -14,9 +14,12 @@ import {
   transferOwnership,
   addAdmin,
   removeAdmin,
+  updateChurch,
 } from '../../services/churchService';
-import { ChevronLeftIcon, ChurchIcon, GoogleIcon, ShareIcon, CloseIcon } from '../ui/Icons';
+import { ChevronLeftIcon, ChurchIcon, GoogleIcon, ShareIcon, CloseIcon, MoreIcon } from '../ui/Icons';
+import { Modal } from '../ui/Modal';
 import { PendingSongsView } from '../song/PendingSongsView';
+import { hasPendingSongs, isUserChurchAdmin } from '../../services/cloudSongService';
 import { signInWithGoogle } from '../../services/authService';
 import styles from './ChurchManagerView.module.css';
 
@@ -41,8 +44,14 @@ export function ChurchManagerView({ onNavigate, initialJoinCode }: Props) {
   const [joinCode, setJoinCode] = useState(initialJoinCode || '');
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [transferUid, setTransferUid] = useState('');
+  const [editChurchId, setEditChurchId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [menuChurchId, setMenuChurchId] = useState<string | null>(null);
+  const [manageSection, setManageSection] = useState<'edit' | 'transfer' | 'admin'>('edit');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [pendingChurches, setPendingChurches] = useState<Record<string, boolean>>({});
   const { color, theme } = useSettings();
 
   useEffect(() => {
@@ -59,20 +68,41 @@ export function ChurchManagerView({ onNavigate, initialJoinCode }: Props) {
     });
   }, []);
 
+  useEffect(() => {
+    if (!menuChurchId) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(`.${styles.menuWrapper}`)) {
+        setMenuChurchId(null);
+      }
+    };
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [menuChurchId]);
+
   async function loadChurches(u: typeof user) {
     setLoading(true);
+    let loaded: Church[];
     if (u) {
-      const cloud = await getUserChurches(u.uid);
-      setChurches(cloud);
+      loaded = await getUserChurches(u.uid);
     } else {
       const localIds = getLocalChurchIds();
-      const loaded: Church[] = [];
+      loaded = [];
       for (const id of localIds) {
         const c = await getChurch(id);
         if (c) loaded.push(c);
       }
-      setChurches(loaded);
     }
+    setChurches(loaded);
+    const pending: Record<string, boolean> = {};
+    for (const c of loaded) {
+      if (u && isUserChurchAdmin(c, u.uid)) {
+        try {
+          pending[c.id] = await hasPendingSongs(c.id);
+        } catch { pending[c.id] = false; }
+      }
+    }
+    setPendingChurches(pending);
     setLoading(false);
   }
 
@@ -156,6 +186,7 @@ export function ChurchManagerView({ onNavigate, initialJoinCode }: Props) {
       await addAdmin(code, newAdminEmail.trim());
       setSuccess('Administrador añadido');
       setNewAdminEmail('');
+      setShowManage(null);
       loadChurches(user);
     } catch (err: any) {
       setError(err.message);
@@ -166,6 +197,19 @@ export function ChurchManagerView({ onNavigate, initialJoinCode }: Props) {
     if (!confirm('¿Remover administrador?')) return;
     try {
       await removeAdmin(code, adminId);
+      loadChurches(user);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleSaveEdit = async (code: string) => {
+    if (!editName.trim()) return;
+    setError('');
+    try {
+      await updateChurch(code, { name: editName.trim(), description: editDesc.trim() });
+      setSuccess('Iglesia actualizada');
+      setEditChurchId(null);
       loadChurches(user);
     } catch (err: any) {
       setError(err.message);
@@ -212,7 +256,11 @@ export function ChurchManagerView({ onNavigate, initialJoinCode }: Props) {
 
             {loading ? <p class={styles.loading}>Cargando...</p> : renderChurchList()}
 
-            {showManage && renderManagePanel()}
+            {showManage && (
+              <Modal isOpen={true} onClose={() => { setShowManage(null); setEditChurchId(null); }} title={'Administrar iglesia'}>
+                {renderManageContent()}
+              </Modal>
+            )}
       </main>
 
       {renderShareDialog()}
@@ -257,6 +305,17 @@ export function ChurchManagerView({ onNavigate, initialJoinCode }: Props) {
           {showJoin && renderJoinForm()}
           {loading ? <p class={styles.loading}>Cargando...</p> : renderChurchList()}
           {showShare && renderShareDialog()}
+          {showPending && (
+            <div class={styles.overlay} onClick={() => setShowPending(null)}>
+              <div class={styles.dialog} onClick={(e) => e.stopPropagation()} data-theme={theme}>
+                <PendingSongsView
+                  churchId={showPending}
+                  onNavigate={onNavigate}
+                  onClose={() => setShowPending(null)}
+                />
+              </div>
+            </div>
+          )}
         </main>
       </div>
     );
@@ -301,7 +360,23 @@ export function ChurchManagerView({ onNavigate, initialJoinCode }: Props) {
 
         {loading ? <p class={styles.loading}>Cargando...</p> : renderChurchList()}
 
-        {showManage && user && renderManagePanel()}
+        {showManage && user && (
+          <Modal isOpen={true} onClose={() => { setShowManage(null); setEditChurchId(null); }} title={'Administrar iglesia'}>
+            {renderManageContent()}
+          </Modal>
+        )}
+
+        {showPending && (
+          <div class={styles.overlay} onClick={() => setShowPending(null)}>
+            <div class={styles.dialog} onClick={(e) => e.stopPropagation()} data-theme={theme}>
+              <PendingSongsView
+                churchId={showPending}
+                onNavigate={onNavigate}
+                onClose={() => setShowPending(null)}
+              />
+            </div>
+          </div>
+        )}
       </main>
 
       {showShare && renderShareDialog()}
@@ -338,17 +413,47 @@ export function ChurchManagerView({ onNavigate, initialJoinCode }: Props) {
                 <ShareIcon size={18} />
               </button>
               {user?.uid === c.ownerId && (
-                <button class={styles.manageBtn} onClick={() => setShowManage(showManage === c.id ? null : c.id)}>
-                  Administrar
-                </button>
+                <div class={styles.menuWrapper}>
+                  <button class={styles.menuBtn} onClick={() => setMenuChurchId(menuChurchId === c.id ? null : c.id)} title="Más opciones">
+                    <MoreIcon size={18} />
+                  </button>
+                  {menuChurchId === c.id && (
+                    <div class={styles.dropdown}>
+                      <button class={styles.dropdownItem} onClick={() => {
+                        setEditChurchId(c.id);
+                        setEditName(c.name);
+                        setEditDesc(c.description || '');
+                        setMenuChurchId(null);
+                        setShowManage(c.id);
+                        setManageSection('edit');
+                      }}>
+                        Editar iglesia
+                      </button>
+                      <button class={styles.dropdownItem} onClick={() => {
+                        setShowManage(c.id);
+                        setTransferUid('');
+                        setMenuChurchId(null);
+                        setManageSection('transfer');
+                      }}>
+                        Transferir propiedad
+                      </button>
+                      <button class={styles.dropdownItem} onClick={() => {
+                        setShowManage(c.id);
+                        setNewAdminEmail('');
+                        setMenuChurchId(null);
+                        setManageSection('admin');
+                      }}>
+                        Añadir administrador
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
               {user?.uid !== c.ownerId && (
                 <button class={styles.leaveBtn} onClick={() => handleLeave(c.id)}>Salir</button>
               )}
-            </div>
-            <div class={styles.churchExtras}>
-              {(user?.uid === c.ownerId || c.adminIds.includes(user?.uid || '')) && (
-                <button class={styles.pendingBtn} onClick={() => setShowPending(c.id)}>
+              {user && isUserChurchAdmin(c, user.uid) && pendingChurches[c.id] && (
+                <button class={styles.pendingBtn} onClick={() => setShowPending(c.id)} title="Canciones pendientes de aprobación">
                   Pendientes
                 </button>
               )}
@@ -359,39 +464,72 @@ export function ChurchManagerView({ onNavigate, initialJoinCode }: Props) {
     );
   }
 
-  function renderManagePanel() {
+  function renderManageContent() {
     const church = churches.find(c => c.id === showManage);
     if (!church) return null;
     return (
-      <div class={styles.managePanel}>
-        <h3>Administrar: {church.name}</h3>
-        <div class={styles.manageSection}>
-          <h4>Transferir propiedad</h4>
-          <input class={styles.input} placeholder="UID del nuevo propietario" value={transferUid}
-            onInput={(e) => setTransferUid((e.target as HTMLInputElement).value)} />
-          <button class={styles.submitBtn} onClick={() => handleTransfer(church.id)}>Transferir</button>
-        </div>
-        <div class={styles.manageSection}>
-          <h4>Añadir administrador</h4>
-          <input class={styles.input} placeholder="UID del administrador" value={newAdminEmail}
-            onInput={(e) => setNewAdminEmail((e.target as HTMLInputElement).value)} />
-          <button class={styles.submitBtn} onClick={() => handleAddAdmin(church.id)}>Añadir</button>
-        </div>
-        <div class={styles.manageSection}>
-          <h4>Administradores actuales</h4>
-          <ul class={styles.adminList}>
-            {church.adminIds.map(aid => (
-              <li key={aid} class={styles.adminItem}>
-                <span>{aid}</span>
-                {user?.uid === church.ownerId && aid !== church.ownerId && (
-                  <button class={styles.removeBtn} onClick={() => handleRemoveAdmin(church.id, aid)}>Quitar</button>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <button class={styles.cancelBtn} onClick={() => setShowManage(null)}>Cerrar</button>
-      </div>
+      <>
+        {manageSection === 'edit' && (
+          <div class={styles.manageSection}>
+            <h4>Nombre y descripción</h4>
+            {editChurchId === church.id ? (
+              <div class={styles.editForm}>
+                <input class={styles.input} placeholder="Nombre" value={editName}
+                  onInput={(e) => setEditName((e.target as HTMLInputElement).value)} />
+                <input class={styles.input} placeholder="Descripción (opcional)" value={editDesc}
+                  onInput={(e) => setEditDesc((e.target as HTMLInputElement).value)} />
+                <div class={styles.editActions}>
+                  <button class={`${styles.submitBtn} ${styles[color]}`} onClick={() => handleSaveEdit(church.id)}>Guardar</button>
+                  <button class={styles.cancelBtn} onClick={() => setEditChurchId(null)}>Cancelar</button>
+                </div>
+              </div>
+            ) : (
+              <div class={styles.editActions}>
+                <p class={styles.currentValue}><strong>Nombre:</strong> {church.name}</p>
+                {church.description && <p class={styles.currentValue}><strong>Descripción:</strong> {church.description}</p>}
+                <button class={styles.editLink} onClick={() => {
+                  setEditChurchId(church.id);
+                  setEditName(church.name);
+                  setEditDesc(church.description || '');
+                }}>Editar</button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {manageSection === 'transfer' && (
+          <div class={styles.manageSection}>
+            <h4>Transferir propiedad</h4>
+            <input class={styles.input} placeholder="UID del nuevo propietario" value={transferUid}
+              onInput={(e) => setTransferUid((e.target as HTMLInputElement).value)} />
+            <button class={styles.submitBtn} onClick={() => handleTransfer(church.id)}>Transferir</button>
+          </div>
+        )}
+
+        {manageSection === 'admin' && (
+          <>
+            <div class={styles.manageSection}>
+              <h4>Añadir administrador</h4>
+              <input class={styles.input} placeholder="UID del administrador" value={newAdminEmail}
+                onInput={(e) => setNewAdminEmail((e.target as HTMLInputElement).value)} />
+              <button class={styles.submitBtn} onClick={() => handleAddAdmin(church.id)}>Añadir</button>
+            </div>
+            <div class={styles.manageSection}>
+              <h4>Administradores actuales</h4>
+              <ul class={styles.adminList}>
+                {church.adminIds.map(aid => (
+                  <li key={aid} class={styles.adminItem}>
+                    <span>{aid}</span>
+                    {user?.uid === church.ownerId && aid !== church.ownerId && (
+                      <button class={styles.removeBtn} onClick={() => handleRemoveAdmin(church.id, aid)}>Quitar</button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
+      </>
     );
   }
 

@@ -108,6 +108,15 @@ export async function addAdmin(code: string, adminId: string): Promise<void> {
   await updateDoc(doc(db, 'iglesias', code), { adminIds: arrayUnion(adminId), memberIds: arrayUnion(adminId) });
 }
 
+export async function updateChurch(code: string, data: { name?: string; description?: string }): Promise<void> {
+  const db = getFirebaseDb();
+  const updateData: Record<string, string> = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.description !== undefined) updateData.description = data.description;
+  if (Object.keys(updateData).length === 0) return;
+  await updateDoc(doc(db, 'iglesias', code), updateData);
+}
+
 export async function removeAdmin(code: string, adminId: string): Promise<void> {
   const db = getFirebaseDb();
   await updateDoc(doc(db, 'iglesias', code), { adminIds: arrayRemove(adminId) });
