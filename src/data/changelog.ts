@@ -9,6 +9,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '2.1.1',
     date: '2026-07-12',
     changes: [
+      'Tooltip interactivo para referencias bíblicas: al pasar el cursor o tocar una referencia se muestra el texto del versículo',
       'Corrección de letras en himnos: #3, #10, #11, #16, #17, #33, #58, #66, #68, #71, #72, #91, #92, #101, #105, #128, #165',
       'Corrección de disposición de versos: #45, #46, #255, #517',
       'Corrección de estrofas con último verso faltante: #235, #256, #350, #407',

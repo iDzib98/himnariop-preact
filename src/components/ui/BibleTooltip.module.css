@@ -1,0 +1,117 @@
+.wrapper {
+  position: relative;
+  display: inline;
+  cursor: pointer;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  max-width: 90vw;
+  background: var(--surface);
+  color: var(--on-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-4);
+  padding: 14px;
+  z-index: var(--z-tooltip);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+  pointer-events: none;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--surface);
+}
+
+.wrapper:hover > .tooltip,
+.wrapper.active > .tooltip {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Position tooltip above or below depending on space */
+.tooltip.below {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
+
+.tooltip.below::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--surface);
+}
+
+.tooltipHeader {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.verseText {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+  color: var(--on-surface);
+}
+
+.verseNumber {
+  font-weight: 700;
+  color: var(--primary);
+  margin-right: 4px;
+  font-size: 11px;
+  vertical-align: super;
+}
+
+.versionLabel {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-align: right;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.loading {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 8px 0;
+}
+
+.error {
+  font-size: 13px;
+  color: var(--error);
+  text-align: center;
+  padding: 8px 0;
+}
+
+/* Mobile: full-width tooltip below */
+@media (max-width: 600px) {
+  .tooltip {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    transform: none;
+  }
+
+  .tooltip::after {
+    display: none;
+  }
+}

@@ -20,6 +20,7 @@ import {
   ShareIcon,
   CloseIcon
 } from '../ui/Icons';
+import { BibleTooltip } from '../ui/BibleTooltip';
 import styles from './HymnView.module.css';
 
 interface HymnViewProps {
@@ -187,7 +188,9 @@ export function HymnView({ numero, onNavigateHome, returnTo }: HymnViewProps) {
         {himno.referencias.length > 0 && (
           <ul class={styles.references}>
             {himno.referencias.map((ref, i) => (
-              <li key={i} class={`${styles.reference} ${styles[color]}-text`}>{ref}</li>
+              <li key={i} class={`${styles.reference} ${styles[color]}-text`}>
+                <BibleTooltip reference={ref}>{ref}</BibleTooltip>
+              </li>
             ))}
           </ul>
         )}
