@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "serve": "npx serve dist -l 3000",
-    "lint": "eslint src --ext ts,tsx"
+    "lint": "eslint src --ext ts,tsx",
+    "update-hymn": "node scripts/update-hymn.mjs"
   },
   "dependencies": {
     "firebase": "^12.15.0",

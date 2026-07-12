@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor de Himnario</title>
+  <style>
+    :root {
+      --color-indigo: #3f51b5;
+      --primary: var(--color-indigo);
+      --primary-light: color-mix(in srgb, var(--primary) 85%, white);
+      --background: #ffffff;
+      --surface: #ffffff;
+      --on-background: #212121;
+      --on-surface: #212121;
+      --on-primary: #ffffff;
+      --error: #b00020;
+      --border: #ddd;
+      --text-secondary: #666;
+      --shadow-2: 0 3px 6px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12);
+      --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --background: #121212;
+      --surface: #1e1e1e;
+      --on-background: #ffffff;
+      --on-surface: #ffffff;
+      --border: #444;
+      --text-secondary: #aaa;
+      --error: #cf6679;
+      --shadow-2: 0 3px 6px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.7);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--background);
+      color: var(--on-background);
+      min-height: 100vh;
+    }
+
+    .container {
+      min-height: 100vh;
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      background: var(--primary);
+      color: #fff;
+      z-index: 100;
+      box-shadow: var(--shadow-2);
+    }
+
+    .headerTitle {
+      flex: 1;
+      font-size: 18px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .saveBtn {
+      padding: 8px 18px;
+      border: 2px solid rgba(255,255,255,0.8);
+      border-radius: 8px;
+      background: transparent;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .saveBtn:hover { background: rgba(255,255,255,0.15); }
+    .saveBtn:disabled { opacity: 0.5; cursor: default; }
+
+    .themeBtn {
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      font-size: 20px;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .themeBtn:hover { background: rgba(255,255,255,0.15); }
+
+    /* Main */
+    .main {
+      padding: calc(64px + 24px) 24px 100px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Load screen */
+    .loadScreen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 64px);
+      gap: 24px;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .loadScreen h2 { font-size: 20px; font-weight: 600; }
+
+    .dropZone {
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      padding: 60px 40px;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      max-width: 500px;
+    }
+    .dropZone:hover, .dropZone.dragover {
+      border-color: var(--primary);
+      background: rgba(63,81,181,0.05);
+    }
+    .dropZone p { font-size: 15px; color: var(--text-secondary); margin-top: 12px; }
+
+    .loadBtn {
+      padding: 12px 32px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .loadBtn:hover { filter: brightness(1.1); }
+
+    /* Hymn selector */
+    .selectorBar {
+      margin-bottom: 24px;
+    }
+    .selectorBar label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .selectorRow {
+      display: flex;
+      gap: 8px;
+    }
+    .selectorRow select {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--on-surface);
+      font-size: 15px;
+      font-family: var(--font-family);
+    }
+    .selectorRow select:focus { outline: none; border-color: var(--primary); }
+
+    .hymnCount {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+    }
+
+    /* Fields */
+    .field { margin-bottom: 24px; }
+
+    .label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--on-surface);
+      font-size: 15px;
+      font-family: var(--font-family);
+    }
+    .input:focus { outline: none; border-color: var(--primary); }
+
+    .textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .listItem {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    .removeBtn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 4px;
+      display: flex;
+      flex-shrink: 0;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .removeBtn:hover { color: var(--error); }
+
+    .addBtn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .addBtn:hover { background: var(--surface); }
+
+    .versesHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .verseHint { font-size: 12px; color: var(--text-secondary); }
+
+    .versoCard {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: var(--surface);
+    }
+
+    .versoHeader {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .versoNombre {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--background);
+      color: var(--on-background);
+      font-size: 14px;
+      font-family: var(--font-family);
+    }
+    .versoNombre:focus { outline: none; border-color: var(--primary); }
+
+    .versoActions { display: flex; gap: 4px; }
+
+    .moveBtn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 4px 8px;
+      font-size: 14px;
+    }
+    .moveBtn:hover { background: var(--background); }
+    .moveBtn:disabled { opacity: 0.3; cursor: default; }
+
+    .versoTextarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--background);
+      color: var(--on-background);
+      font-size: 14px;
+      font-family: var(--font-family);
+      line-height: 1.6;
+      resize: vertical;
+      min-height: 120px;
+    }
+    .versoTextarea:focus { outline: none; border-color: var(--primary); }
+
+    .verseOverflowWarning {
+      display: block;
+      font-size: 12px;
+      color: #ff9800;
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    .addVersoBtn {
+      width: 100%;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    /* Diff panel */
+    .diffPanel {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+      padding: 16px 24px;
+      z-index: 200;
+      max-height: 40vh;
+      overflow-y: auto;
+      display: none;
+    }
+    .diffPanel.visible { display: block; }
+
+    .diffHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .diffHeader h3 { font-size: 16px; }
+
+    .diffActions { display: flex; gap: 8px; }
+
+    .diffBtn {
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+    .diffConfirm {
+      background: var(--primary);
+      color: #fff;
+    }
+    .diffCancel {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--on-surface);
+    }
+
+    .diffContent {
+      font-family: 'Roboto Mono', Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .diffAdd { color: #4caf50; }
+    .diffRemove { color: var(--error); }
+    .diffSection { color: var(--text-secondary); font-weight: 600; margin-top: 8px; }
+
+    /* Status bar */
+    .statusBar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 50;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .statusBar.hasChanges { border-top-color: #ff9800; }
+    .statusDot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+    .statusDot.saved { background: #4caf50; }
+    .statusDot.modified { background: #ff9800; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="container" id="app" data-theme="light">
+    <header class="header">
+      <span class="headerTitle" id="headerTitle">Editor de Himnario</span>
+      <button class="themeBtn" id="themeBtn" title="Cambiar tema">🌙</button>
+      <button class="saveBtn" id="saveBtn" onclick="handleSave()" disabled>Guardar</button>
+    </header>
+
+    <!-- Load screen -->
+    <main class="main" id="loadScreen">
+      <div class="loadScreen">
+        <h2>Cargar himnario</h2>
+        <div class="dropZone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-secondary)">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <polyline points="9 15 12 12 15 15"/>
+          </svg>
+          <p>Arrastra <strong>himnos.json</strong> aquí o haz clic para seleccionar</p>
+        </div>
+        <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFileSelect(event)">
+        <button class="loadBtn" onclick="loadFromUrl()">Cargar desde URL</button>
+      </div>
+    </main>
+
+    <!-- Editor (hidden until hymn is loaded) -->
+    <main class="main hidden" id="editorScreen">
+      <div class="selectorBar">
+        <label>Seleccionar himno</label>
+        <div class="selectorRow">
+          <select id="hymnSelect" onchange="handleHymnSelect()"></select>
+        </div>
+        <div class="hymnCount" id="hymnCount"></div>
+      </div>
+
+      <div id="editorForm" class="hidden">
+        <div class="field">
+          <label class="label">Numero</label>
+          <input class="input" id="fieldNumero" type="number" min="1" readonly style="opacity:0.7; cursor:not-allowed;">
+        </div>
+
+        <div class="field">
+          <label class="label">Titulo</label>
+          <input class="input" id="fieldTitulo" placeholder="Titulo del himno" oninput="markDirty()">
+        </div>
+
+        <div class="field">
+          <label class="label">Introduccion</label>
+          <textarea class="input textarea" id="fieldIntro" placeholder="Cita biblica o texto introductorio..." rows="2" oninput="markDirty()"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="label">Referencias biblicas</label>
+          <div id="referenciasList"></div>
+          <button class="addBtn" onclick="addReferencia()">+ Agregar referencia</button>
+        </div>
+
+        <div class="field">
+          <label class="label">Autores</label>
+          <div id="autoresList"></div>
+          <button class="addBtn" onclick="addAutor()">+ Agregar autor</button>
+        </div>
+
+        <div class="field">
+          <div class="versesHeader">
+            <label class="label" style="margin-bottom:0">Versos</label>
+            <span class="verseHint">Max. 8 lineas por estrofa</span>
+          </div>
+          <div id="versosList"></div>
+          <button class="addBtn addVersoBtn" onclick="addVerso()">+ Agregar estrofa</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Status bar -->
+    <div class="statusBar" id="statusBar">
+      <span><span class="statusDot saved" id="statusDot"></span><span id="statusText">Sin cambios</span></span>
+      <span id="statusHymn"></span>
+    </div>
+
+    <!-- Diff panel -->
+    <div class="diffPanel" id="diffPanel">
+      <div class="diffHeader">
+        <h3>Cambios a aplicar</h3>
+        <div class="diffActions">
+          <button class="diffBtn diffCancel" onclick="cancelSave()">Cancelar</button>
+          <button class="diffBtn diffConfirm" onclick="confirmSave()">Descargar JSON actualizado</button>
+        </div>
+      </div>
+      <div class="diffContent" id="diffContent"></div>
+    </div>
+  </div>
+
+  <script>
+    let hymns = [];
+    let originalHymns = [];
+    let currentHymnIndex = -1;
+    let dirty = false;
+    let fileName = 'himnos.json';
+
+    // --- File Loading ---
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      fileName = file.name;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        try {
+          const data = JSON.parse(ev.target.result);
+          loadHymns(data);
+        } catch(err) {
+          alert('Error al parsear JSON: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', function() {
+      dropZone.classList.remove('dragover');
+    });
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      fileName = file.name;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        try {
+          const data = JSON.parse(ev.target.result);
+          loadHymns(data);
+        } catch(err) {
+          alert('Error al parsear JSON: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    function loadFromUrl() {
+      const url = prompt('URL del archivo himnos.json:', '../public/himnos.json');
+      if (!url) return;
+      fetch(url)
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(data => loadHymns(data))
+        .catch(err => alert('Error al cargar: ' + err.message));
+    }
+
+    function loadHymns(data) {
+      if (!Array.isArray(data)) {
+        alert('El JSON debe ser un array');
+        return;
+      }
+      originalHymns = JSON.parse(JSON.stringify(data));
+      hymns = data;
+      document.getElementById('loadScreen').classList.add('hidden');
+      document.getElementById('editorScreen').classList.remove('hidden');
+      populateSelect();
+      document.getElementById('hymnCount').textContent = hymns.filter(h => h !== null).length + ' himnos cargados';
+    }
+
+    function populateSelect() {
+      const select = document.getElementById('hymnSelect');
+      select.innerHTML = '<option value="-1">-- Seleccionar himno --</option>';
+      for (let i = 1; i < hymns.length; i++) {
+        const h = hymns[i];
+        if (!h) continue;
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = '#' + h.numero + ' - ' + h.titulo;
+        select.appendChild(opt);
+      }
+    }
+
+    // --- Hymn Selection ---
+
+    function handleHymnSelect() {
+      const idx = parseInt(document.getElementById('hymnSelect').value, 10);
+      if (idx < 0) {
+        document.getElementById('editorForm').classList.add('hidden');
+        currentHymnIndex = -1;
+        updateStatus();
+        return;
+      }
+      currentHymnIndex = idx;
+      renderHymn(hymns[idx]);
+      document.getElementById('editorForm').classList.remove('hidden');
+      updateStatus();
+    }
+
+    function renderHymn(h) {
+      document.getElementById('fieldNumero').value = h.numero;
+      document.getElementById('fieldTitulo').value = h.titulo || '';
+      document.getElementById('fieldIntro').value = h.intro || '';
+      document.getElementById('headerTitle').textContent = '#' + h.numero + ' - ' + (h.titulo || '');
+
+      renderReferencias(h.referencias || []);
+      renderAutores(h.autores || []);
+      renderVersos(h.versos || []);
+    }
+
+    // --- Referencias ---
+
+    function renderReferencias(refs) {
+      const container = document.getElementById('referenciasList');
+      container.innerHTML = '';
+      refs.forEach(function(ref, i) {
+        const div = document.createElement('div');
+        div.className = 'listItem';
+        div.innerHTML =
+          '<input class="input" value="' + escapeAttr(ref) + '" placeholder="Ej: 1-Ef. 1:3" oninput="updateReferencia(' + i + ', this.value)">' +
+          '<button class="removeBtn" onclick="removeReferencia(' + i + ')" title="Eliminar">&#10005;</button>';
+        container.appendChild(div);
+      });
+    }
+
+    function addReferencia() {
+      const h = hymns[currentHymnIndex];
+      if (!h.referencias) h.referencias = [];
+      h.referencias.push('');
+      renderReferencias(h.referencias);
+      markDirty();
+    }
+
+    function updateReferencia(idx, val) {
+      hymns[currentHymnIndex].referencias[idx] = val;
+      markDirty();
+    }
+
+    function removeReferencia(idx) {
+      hymns[currentHymnIndex].referencias.splice(idx, 1);
+      renderReferencias(hymns[currentHymnIndex].referencias);
+      markDirty();
+    }
+
+    // --- Autores ---
+
+    function renderAutores(autores) {
+      const container = document.getElementById('autoresList');
+      container.innerHTML = '';
+      autores.forEach(function(a, i) {
+        const div = document.createElement('div');
+        div.className = 'listItem';
+        div.innerHTML =
+          '<input class="input" value="' + escapeAttr(a) + '" placeholder="Ej: LETRA: Nombre, 2024" oninput="updateAutor(' + i + ', this.value)">' +
+          '<button class="removeBtn" onclick="removeAutor(' + i + ')" title="Eliminar">&#10005;</button>';
+        container.appendChild(div);
+      });
+    }
+
+    function addAutor() {
+      const h = hymns[currentHymnIndex];
+      if (!h.autores) h.autores = [];
+      h.autores.push('');
+      renderAutores(h.autores);
+      markDirty();
+    }
+
+    function updateAutor(idx, val) {
+      hymns[currentHymnIndex].autores[idx] = val;
+      markDirty();
+    }
+
+    function removeAutor(idx) {
+      hymns[currentHymnIndex].autores.splice(idx, 1);
+      renderAutores(hymns[currentHymnIndex].autores);
+      markDirty();
+    }
+
+    // --- Versos ---
+
+    function renderVersos(versos) {
+      const container = document.getElementById('versosList');
+      container.innerHTML = '';
+      versos.forEach(function(v, i) {
+        const card = document.createElement('div');
+        card.className = 'versoCard';
+        const lineas = (v.lineas || []).join('\n');
+        const hasOverflow = (v.lineas || []).length > 8;
+        card.innerHTML =
+          '<div class="versoHeader">' +
+            '<input class="versoNombre" value="' + escapeAttr(v.nombre) + '" placeholder="Nombre (1, Coro, etc.)" oninput="updateVersoNombre(' + i + ', this.value)">' +
+            '<div class="versoActions">' +
+              '<button class="moveBtn" onclick="moveVerso(' + i + ',-1)" ' + (i === 0 ? 'disabled' : '') + ' title="Subir">&#9650;</button>' +
+              '<button class="moveBtn" onclick="moveVerso(' + i + ',1)" ' + (i === versos.length - 1 ? 'disabled' : '') + ' title="Bajar">&#9660;</button>' +
+              '<button class="removeBtn" onclick="removeVerso(' + i + ')" title="Eliminar">&#10005;</button>' +
+            '</div>' +
+          '</div>' +
+          '<textarea class="versoTextarea" rows="4" placeholder="Lineas del verso... (Enter para nueva linea)" oninput="updateVersoContent(' + i + ', this.value)">' + escapeHtml(lineas) + '</textarea>' +
+          (hasOverflow ? '<span class="verseOverflowWarning">Mas de 8 lineas puede causar problemas en la proyeccion</span>' : '');
+        container.appendChild(card);
+      });
+    }
+
+    function addVerso() {
+      const h = hymns[currentHymnIndex];
+      if (!h.versos) h.versos = [];
+      const num = h.versos.length + 1;
+      h.versos.push({ nombre: String(num), lineas: [''] });
+      renderVersos(h.versos);
+      markDirty();
+    }
+
+    function updateVersoNombre(idx, val) {
+      hymns[currentHymnIndex].versos[idx].nombre = val;
+      markDirty();
+    }
+
+    function updateVersoContent(idx, val) {
+      const lines = val.split('\n');
+      hymns[currentHymnIndex].versos[idx].lineas = lines;
+      const hasOverflow = lines.filter(l => l.trim() !== '').length > 8;
+      const warning = event.target.parentElement.querySelector('.verseOverflowWarning');
+      if (hasOverflow && !warning) {
+        const span = document.createElement('span');
+        span.className = 'verseOverflowWarning';
+        span.textContent = 'Mas de 8 lineas puede causar problemas en la proyeccion';
+        event.target.parentElement.appendChild(span);
+      } else if (!hasOverflow && warning) {
+        warning.remove();
+      }
+      markDirty();
+    }
+
+    function removeVerso(idx) {
+      hymns[currentHymnIndex].versos.splice(idx, 1);
+      renderVersos(hymns[currentHymnIndex].versos);
+      markDirty();
+    }
+
+    function moveVerso(idx, dir) {
+      const versos = hymns[currentHymnIndex].versos;
+      const target = idx + dir;
+      if (target < 0 || target >= versos.length) return;
+      [versos[idx], versos[target]] = [versos[target], versos[idx]];
+      renderVersos(versos);
+      markDirty();
+    }
+
+    // --- Dirty tracking ---
+
+    function markDirty() {
+      dirty = true;
+      updateStatus();
+      document.getElementById('saveBtn').disabled = false;
+    }
+
+    function updateStatus() {
+      const dot = document.getElementById('statusDot');
+      const text = document.getElementById('statusText');
+      const hymn = document.getElementById('statusHymn');
+      if (dirty) {
+        dot.className = 'statusDot modified';
+        text.textContent = 'Cambios sin guardar';
+        document.getElementById('statusBar').classList.add('hasChanges');
+      } else {
+        dot.className = 'statusDot saved';
+        text.textContent = 'Sin cambios';
+        document.getElementById('statusBar').classList.remove('hasChanges');
+      }
+      if (currentHymnIndex >= 0) {
+        const h = hymns[currentHymnIndex];
+        hymn.textContent = 'Himno #' + h.numero;
+      } else {
+        hymn.textContent = '';
+      }
+    }
+
+    // --- Save / Export ---
+
+    function handleSave() {
+      if (currentHymnIndex < 0) return;
+
+      // Sync form fields to data
+      const h = hymns[currentHymnIndex];
+      h.titulo = document.getElementById('fieldTitulo').value;
+      h.intro = document.getElementById('fieldIntro').value;
+
+      // Build diff
+      const orig = originalHymns[currentHymnIndex];
+      const diff = buildDiff(orig, h);
+      if (!diff) {
+        alert('No hay cambios que guardar.');
+        return;
+      }
+
+      document.getElementById('diffContent').innerHTML = diff;
+      document.getElementById('diffPanel').classList.add('visible');
+    }
+
+    function buildDiff(orig, updated) {
+      let html = '';
+      let hasChanges = false;
+
+      if ((orig.titulo || '') !== (updated.titulo || '')) {
+        hasChanges = true;
+        html += '<div class="diffSection">titulo:</div>';
+        html += '<div class="diffRemove">- "' + escapeHtml(orig.titulo || '') + '"</div>';
+        html += '<div class="diffAdd">+ "' + escapeHtml(updated.titulo || '') + '"</div>';
+      }
+
+      if ((orig.intro || '') !== (updated.intro || '')) {
+        hasChanges = true;
+        html += '<div class="diffSection">intro:</div>';
+        html += '<div class="diffRemove">- "' + escapeHtml(orig.intro || '') + '"</div>';
+        html += '<div class="diffAdd">+ "' + escapeHtml(updated.intro || '') + '"</div>';
+      }
+
+      if (JSON.stringify(orig.referencias) !== JSON.stringify(updated.referencias)) {
+        hasChanges = true;
+        html += '<div class="diffSection">referencias:</div>';
+        (orig.referencias || []).forEach(function(r) { html += '<div class="diffRemove">- "' + escapeHtml(r) + '"</div>'; });
+        (updated.referencias || []).forEach(function(r) { html += '<div class="diffAdd">+ "' + escapeHtml(r) + '"</div>'; });
+      }
+
+      if (JSON.stringify(orig.autores) !== JSON.stringify(updated.autores)) {
+        hasChanges = true;
+        html += '<div class="diffSection">autores:</div>';
+        (orig.autores || []).forEach(function(a) { html += '<div class="diffRemove">- "' + escapeHtml(a) + '"</div>'; });
+        (updated.autores || []).forEach(function(a) { html += '<div class="diffAdd">+ "' + escapeHtml(a) + '"</div>'; });
+      }
+
+      if (JSON.stringify(orig.versos) !== JSON.stringify(updated.versos)) {
+        hasChanges = true;
+        const maxLen = Math.max((orig.versos || []).length, (updated.versos || []).length);
+        for (let i = 0; i < maxLen; i++) {
+          const o = (orig.versos || [])[i];
+          const u = (updated.versos || [])[i];
+          if (!u) {
+            html += '<div class="diffSection">verso "' + escapeHtml(o.nombre) + '" (eliminado):</div>';
+            (o.lineas || []).forEach(function(l) { html += '<div class="diffRemove">- "' + escapeHtml(l) + '"</div>'; });
+          } else if (!o) {
+            html += '<div class="diffSection">verso "' + escapeHtml(u.nombre) + '" (nuevo):</div>';
+            (u.lineas || []).forEach(function(l) { html += '<div class="diffAdd">+ "' + escapeHtml(l) + '"</div>'; });
+          } else if (JSON.stringify(o) !== JSON.stringify(u)) {
+            html += '<div class="diffSection">verso "' + escapeHtml(u.nombre) + '":</div>';
+            (o.lineas || []).forEach(function(l) { html += '<div class="diffRemove">- "' + escapeHtml(l) + '"</div>'; });
+            (u.lineas || []).forEach(function(l) { html += '<div class="diffAdd">+ "' + escapeHtml(l) + '"</div>'; });
+          }
+        }
+      }
+
+      return hasChanges ? html : null;
+    }
+
+    function cancelSave() {
+      document.getElementById('diffPanel').classList.remove('visible');
+    }
+
+    function confirmSave() {
+      document.getElementById('diffPanel').classList.remove('visible');
+
+      // Clean up: remove empty referencias/autores
+      const h = hymns[currentHymnIndex];
+      h.referencias = (h.referencias || []).filter(function(r) { return r.trim() !== ''; });
+      h.autores = (h.autores || []).filter(function(a) { return a.trim() !== ''; });
+
+      // Download full updated JSON
+      const json = JSON.stringify(hymns, null, 2) + '\n';
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName || 'himnos.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      dirty = false;
+      updateStatus();
+      document.getElementById('saveBtn').disabled = true;
+    }
+
+    // --- Theme ---
+
+    const themes = ['light', 'dark'];
+    let themeIdx = 0;
+
+    document.getElementById('themeBtn').addEventListener('click', function() {
+      themeIdx = (themeIdx + 1) % themes.length;
+      const t = themes[themeIdx];
+      document.getElementById('app').setAttribute('data-theme', t);
+      this.textContent = t === 'dark' ? '☀️' : '🌙';
+    });
+
+    // --- Helpers ---
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function escapeAttr(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    // Keyboard shortcut: Ctrl+S to save
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (!document.getElementById('saveBtn').disabled) handleSave();
+      }
+    });
+
+    updateStatus();
+  </script>
+</body>
+</html>
