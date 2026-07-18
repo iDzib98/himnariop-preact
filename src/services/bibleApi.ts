@@ -7,16 +7,21 @@ export interface BibleVerse {
   chapter: string;
   verse: string;
   text: string;
+  annotations?: string[];
 }
 
 interface ChapterResponse {
   data: BibleVerse[];
 }
 
-const CACHE_PREFIX = 'bible_chapter_';
+const CACHE_PREFIX = 'bible_chapter_v3_';
 
 function isRvr1960(): boolean {
   return storage.bibleVersion === 'es-rvr1960';
+}
+
+function isRv09(): boolean {
+  return storage.bibleVersion === 'es-rv09';
 }
 
 function getBaseUrl(): string {
@@ -44,6 +49,114 @@ function setCachedChapter(bookId: string, chapter: number, data: BibleVerse[]): 
   } catch {}
 }
 
+function extractAnnotations(v: BibleVerse): { text: string; annotations: string[] } {
+  const re = new RegExp(`${v.chapter}:${v.verse}\\.?.*?\\.([ \\t\\n\\r]*)(?=[a-záéíóú¡¿]|$)`, 'g');
+  const annotations: string[] = [];
+  const text = v.text.replace(re, (match) => {
+    annotations.push(match.trim());
+    return '* ';
+  }).replace(/\s+/g, ' ').replace(/\* \*/g, '*').trim();
+  return { text, annotations };
+}
+
+function findRv09AnnotationEnd(
+  text: string,
+  startPos: number,
+  selfRef: string
+): { annotation: string; endPos: number } | null {
+  if (!text.startsWith(selfRef, startPos)) return null;
+
+  let pos = startPos + selfRef.length;
+
+  while (pos < text.length) {
+    const ch = text[pos];
+
+    if (ch === '.') {
+      const next = text[pos + 1];
+
+      if (!next) {
+        return { annotation: text.substring(startPos, pos + 1).trim(), endPos: pos + 1 };
+      }
+
+      if (next >= '0' && next <= '9') {
+        pos++;
+        continue;
+      }
+
+      if (next !== ' ' && next !== '\t' && next !== '\n') {
+        return { annotation: text.substring(startPos, pos + 1).trim(), endPos: pos + 1 };
+      }
+
+      let j = pos + 1;
+      while (j < text.length && (text[j] === ' ' || text[j] === '\t')) j++;
+      const afterSpace = text[j];
+
+      if (!afterSpace) {
+        return { annotation: text.substring(startPos, pos + 1).trim(), endPos: pos + 1 };
+      }
+
+      if (afterSpace >= '0' && afterSpace <= '9') {
+        pos = j;
+        continue;
+      }
+
+      if (afterSpace >= 'A' && afterSpace <= 'Z') {
+        let wordEnd = j;
+        while (wordEnd < text.length && text[wordEnd] !== '.' && text[wordEnd] !== ' ' && text[wordEnd] !== '\n') {
+          wordEnd++;
+        }
+        if (wordEnd < text.length && text[wordEnd] === '.') {
+          pos = wordEnd + 1;
+          continue;
+        }
+        return { annotation: text.substring(startPos, pos + 1).trim(), endPos: pos + 1 };
+      }
+
+      if (afterSpace >= 'a' && afterSpace <= 'z') {
+        if (afterSpace === 'y' && j + 1 < text.length && text[j + 1] === ' ') {
+          let k = j + 2;
+          while (k < text.length && text[k] === ' ') k++;
+          if (k < text.length && text[k] >= '0' && text[k] <= '9') {
+            pos = k;
+            continue;
+          }
+        }
+        return { annotation: text.substring(startPos, pos + 1).trim(), endPos: pos + 1 };
+      }
+
+      return { annotation: text.substring(startPos, pos + 1).trim(), endPos: pos + 1 };
+    }
+
+    pos++;
+  }
+
+  return null;
+}
+
+function extractRv09Annotations(v: BibleVerse): { text: string; annotations: string[] } {
+  const selfRef = `${v.chapter}.${v.verse}`;
+  const annotations: string[] = [];
+  let text = v.text;
+
+  let searchFrom = 0;
+  while (searchFrom < text.length) {
+    const idx = text.indexOf(selfRef, searchFrom);
+    if (idx === -1) break;
+
+    const result = findRv09AnnotationEnd(text, idx, selfRef);
+    if (result) {
+      annotations.push(result.annotation);
+      text = text.substring(0, idx) + '* ' + text.substring(result.endPos);
+      searchFrom = idx + 2;
+    } else {
+      searchFrom = idx + selfRef.length;
+    }
+  }
+
+  text = text.replace(/\s+/g, ' ').trim();
+  return { text, annotations };
+}
+
 export async function fetchChapter(bookId: string, chapter: number): Promise<BibleVerse[]> {
   if (isRvr1960()) {
     return fetchRvr1960Chapter(bookId, chapter);
@@ -64,7 +177,11 @@ export async function fetchChapter(bookId: string, chapter: number): Promise<Bib
   if (!response.ok) throw new Error(`Failed to fetch chapter: ${response.statusText}`);
 
   const json: ChapterResponse = await response.json();
-  const verses = json.data;
+  const extractFn = isRv09() ? extractRv09Annotations : extractAnnotations;
+  const verses = json.data.map(v => {
+    const { text, annotations } = extractFn(v);
+    return { ...v, text, annotations: annotations.length > 0 ? annotations : undefined };
+  });
 
   setCachedChapter(bookId, chapter, verses);
   return verses;

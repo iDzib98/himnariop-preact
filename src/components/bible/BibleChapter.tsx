@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'preact/hooks';
+import { Fragment } from 'preact';
 import { fetchChapter } from '../../services/bibleApi';
+import { fixVerseBreaks } from '../../services/rvr1960Api';
 import { getBookById } from '../../data/books';
 import type { BibleVerse } from '../../services/bibleApi';
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, CloseIcon, BibleIcon, StarIcon, StarFilledIcon, TvIcon, PrintIcon, ShareIcon } from '../ui/Icons';
@@ -7,6 +9,7 @@ import { useSettings } from '../../hooks/useSettings';
 import { storage } from '../../services/storage';
 import { syncFavoritesAfterChange } from '../../services/cloudFavoritesService';
 import { BibleTvMode } from './BibleTvMode';
+import { AnnotationMarker } from '../ui/AnnotationMarker';
 import styles from './BibleChapter.module.css';
 
 interface BibleChapterProps {
@@ -205,25 +208,38 @@ export function BibleChapter({ bookId, chapter, onNavigate, returnTo, startVerse
               </button>
             </div>
 
-            {verses.map(v => (
-              <div key={v.verse} class={styles.verse}>
-                <span class={styles.verseNumber}>{v.verse}</span>
-                <p class={styles.verseText}>{v.text}</p>
-              </div>
-            ))}
+            {verses.map(v => {
+              const processed = fixVerseBreaks(v.text, '\n');
+              const parts = processed.split('*');
+              return (
+                <div key={v.verse} class={styles.verse}>
+                  <span class={styles.verseNumber}>{v.verse}</span>
+                  <p class={styles.verseText}>
+                    {parts.map((part, i) => (
+                      <Fragment key={i}>
+                        {part}
+                        {i < parts.length - 1 && v.annotations && (
+                          <AnnotationMarker annotations={[v.annotations[i]]} />
+                        )}
+                      </Fragment>
+                    ))}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         )}
 
         {verses && !isReading && (
-          <div class={`${styles.chapterFooter} ${styles[color]}`}>
+          <div class={styles.chapterFooter}>
             {prevChapter && (
-              <button class={styles.footerBtn} onClick={() => onNavigate(`biblia/${encodeURIComponent(bookId)}/${prevChapter}`)}>
+              <button class={`${styles.footerBtn} ${styles[color]}`} onClick={() => onNavigate(`biblia/${encodeURIComponent(bookId)}/${prevChapter}`)}>
                 <ChevronLeftIcon size={20} />
                 <span>{book.nombre} {prevChapter}</span>
               </button>
             )}
             {nextChapter && (
-              <button class={styles.footerBtn} onClick={() => onNavigate(`biblia/${encodeURIComponent(bookId)}/${nextChapter}`)}>
+              <button class={`${styles.footerBtn} ${styles[color]}`} onClick={() => onNavigate(`biblia/${encodeURIComponent(bookId)}/${nextChapter}`)}>
                 <span>{book.nombre} {nextChapter}</span>
                 <ChevronRightIcon size={20} />
               </button>

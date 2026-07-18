@@ -276,7 +276,6 @@ for (const himno of himnos) {
   if (!himno) continue;
 
   const newVersos = [];
-  let versesAdded = 0;
 
   for (const verso of himno.versos) {
     if (verso.lineas.length <= 8) {
@@ -299,6 +298,8 @@ for (const himno of himnos) {
       .map((l, i) => l.trim() === '' ? i : -1)
       .filter(i => i >= 0);
 
+    let firstPart = true;
+
     if (blankIndices.length > 0) {
       // Auto-split at blank lines
       // Group consecutive blank lines
@@ -315,10 +316,10 @@ for (const himno of himnos) {
         const partLines = lines.slice(start, sp);
         if (partLines.length > 0) {
           newVersos.push({
-            nombre: versesAdded === 0 ? verso.nombre : '',
+            nombre: firstPart ? verso.nombre : '',
             lineas: partLines,
           });
-          versesAdded++;
+          firstPart = false;
           totalSplits++;
         }
         // Skip blank lines
@@ -332,10 +333,10 @@ for (const himno of himnos) {
         const partLines = lines.slice(start);
         if (partLines.length > 0) {
           newVersos.push({
-            nombre: versesAdded === 0 ? verso.nombre : '',
+            nombre: firstPart ? verso.nombre : '',
             lineas: partLines,
           });
-          versesAdded++;
+          firstPart = false;
           totalSplits++;
         }
       }
@@ -352,10 +353,10 @@ for (const himno of himnos) {
           const partLines = lines.slice(start, end);
           if (partLines.length > 0) {
             newVersos.push({
-              nombre: versesAdded === 0 ? verso.nombre : '',
+              nombre: firstPart ? verso.nombre : '',
               lineas: partLines,
             });
-            versesAdded++;
+            firstPart = false;
             totalSplits++;
           }
           start = end;
@@ -365,10 +366,10 @@ for (const himno of himnos) {
           const partLines = lines.slice(start);
           if (partLines.length > 0) {
             newVersos.push({
-              nombre: versesAdded === 0 ? verso.nombre : '',
+              nombre: firstPart ? verso.nombre : '',
               lineas: partLines,
             });
-            versesAdded++;
+            firstPart = false;
             totalSplits++;
           }
         }

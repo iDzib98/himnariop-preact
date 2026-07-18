@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
+import { Fragment } from 'preact';
 import type { BibleVerse } from '../../services/bibleApi';
+import { fixVerseBreaks } from '../../services/rvr1960Api';
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from '../ui/Icons';
+import { AnnotationMarker } from '../ui/AnnotationMarker';
 import styles from './BibleTvMode.module.css';
 
 interface BibleTvModeProps {
@@ -169,7 +172,21 @@ export function BibleTvMode({ verses, bookName, chapter, onClose, theme }: Bible
             <div class={`${styles.slide} ${styles.verseSlide}`}>
               <div class={styles.verseContent}>
                 <span class={styles.verseNum}>{verses[slide - 1].verse}</span>
-                <p class={styles.verseText}>{verses[slide - 1].text}</p>
+                <p class={styles.verseText}>
+                  {(() => {
+                    const v = verses[slide - 1];
+                    const processed = fixVerseBreaks(v.text, '\n');
+                    const parts = processed.split('*');
+                    return parts.map((part, i) => (
+                      <Fragment key={i}>
+                        {part}
+                        {i < parts.length - 1 && v.annotations && (
+                          <AnnotationMarker annotations={[v.annotations[i]]} />
+                        )}
+                      </Fragment>
+                    ));
+                  })()}
+                </p>
               </div>
             </div>
           )}

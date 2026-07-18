@@ -87,6 +87,13 @@ export async function fetchRvr1960Chapter(bookId: string, chapter: number): Prom
   return verses;
 }
 
+export function fixVerseBreaks(text: string, join: '\n' | ' '): string {
+  return text
+    .replace(/([;:,.!])([A-Z])/gu, `$1${join}$2`)
+    .replace(/(\p{Ll})(\p{Lu})/gu, `$1${join}$2`)
+    .replace(/\s+$/, '');
+}
+
 export function isRvr1960Cached(): boolean {
   return getCachedBookNames() !== null;
 }

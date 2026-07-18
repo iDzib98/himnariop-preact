@@ -103,6 +103,7 @@
   font-weight: 700;
   line-height: 1.2;
   display: inline;
+  white-space: pre-line;
 }
 
 .bottomCenter {

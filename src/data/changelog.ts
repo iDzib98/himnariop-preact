@@ -12,6 +12,10 @@ export const CHANGELOG: ChangelogEntry[] = [
       'División de estrofas largas en 91 himnos para proyección óptima en modo TV (máx. 8 líneas por estrofa)',
       'Divisiones manuales: #34, #38, #41, #42, #44, #51, #55, #58, #66, #69, #71, #72, #95, #108, #134, #139, #186, #211, #213, #217, #218, #220, #223, #224, #226, #232, #233, #237, #247, #261, #263, #274, #277, #290, #291, #292, #322, #333, #334, #369, #372, #384, #392, #393, #403, #410, #413, #427, #428, #435, #440, #466, #469, #471, #477, #480, #481, #487, #490, #610, #615, #618, #621, #622, #626, #630, #631, #633, #666, #676, #696',
       'Divisiones automáticas por líneas en blanco: #24, #103, #120, #125, #127, #130, #131, #138, #145, #171, #174, #176, #177, #178, #179, #420, #429, #444, #446, #661',
+      'Corrección de saltos de línea faltantes en versículos RVR1960',
+      'Extracción de anotaciones inline de Biblia Libre (es-vbl) en tooltips',
+      'Soporte de referencias cruzadas inline en Reina Valera 1909 (es-rv09)',
+      'Botones de capítulo anterior/siguiente como botones contenidos en el pie de página',
     ],
   },
   {

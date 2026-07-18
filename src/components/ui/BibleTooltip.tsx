@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'preact/hooks';
 import { parseReference } from '../../services/referenceParser';
 import { fetchVerses, type FetchedVerses } from '../../services/verseFetcher';
+import { fixVerseBreaks } from '../../services/rvr1960Api';
 import { storage } from '../../services/storage';
 import { BIBLE_VERSIONS } from '../../data/bibleVersions';
 import { getBookById } from '../../data/books';
@@ -141,7 +142,7 @@ export function BibleTooltip({ reference, children }: Props) {
               {data.verses.map(v => (
                 <p key={v.verse} class={styles.verseText}>
                   <span class={styles.verseNumber}>{v.verse}</span>
-                  {v.text}
+                  {fixVerseBreaks(v.text, ' ')}
                 </p>
               ))}
             </div>

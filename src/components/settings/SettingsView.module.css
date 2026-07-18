@@ -391,6 +391,7 @@
 .changelogList {
   margin: 0;
   padding-left: 16px;
+  list-style-type: disc;
 }
 
 .changelogItem {
